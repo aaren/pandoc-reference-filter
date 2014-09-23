@@ -92,6 +92,22 @@ def figure_number(key, value, format, metadata):
                                                       caption=caption,
                                                       label=label[1:]))])
 
+# TODO: section references need to work as well.
+# all internal links should be \autoref in latex output.
+# section headers should have the label correctly defined - i.e. not
+# as a hyperlink
+# counting sections is trickier because of subsections - we can have
+# e.g. 'a reference to Section 1.1.2'
+# could just use some generic text, 'above' 'below'
+
+# or 'see above' / 'Section x.y' for html / latex
+# e.g.
+# markdown: "we're talking about this thing ([see above](#sec:ref))"
+# -> latex: "we're talking about this thing (\autoref{sec:ref})"
+# -> html:  "we're talking about this thing (<a href="#sec:ref">see above</a>)
+#
+# this constrains language a bit, but maybe workable?
+
 links = {'sec': 'Section',
          'fig': 'Figure'}
 
