@@ -10,7 +10,7 @@ caption
 
 ![figure with no attr](image.png)
 
-Here is a reference to [](#fig:attr) and here is one to
-[](#fig:attr2).
+Here is a reference to [this text is ignored](#fig:attr) and here is
+one to [](#fig:attr2).
 
-Here is reference to the section called [blah](#sec:expt).
+Here is reference to the section called [this text is not ignored](#sec:expt).
