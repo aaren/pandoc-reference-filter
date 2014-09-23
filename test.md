@@ -12,3 +12,5 @@ caption
 
 Here is a reference to [](#fig:attr) and here is one to
 [](#fig:attr2).
+
+Here is reference to the section called [blah](#sec:expt).
