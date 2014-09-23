@@ -2,10 +2,9 @@ import pandocfilters as pf
 
 latex_figure = """
 \\begin{{figure}}[htbp]
-\\label{{{label}}}
 \\centering
 \\includegraphics{{{filename}}}
-\\caption{{{caption}}}
+\\caption{{{caption}\\label{{{label}}}}}
 \\end{{figure}}"""
 
 html_figure = """
