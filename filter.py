@@ -33,9 +33,11 @@ def isattrfigure(key, value):
     return (isfigure(key, value) and isattr(value[1]['c']))
 
 
-def islinktofigure(key, value):
-    return (key == 'Link' and (value[1][0]).startswith('#fig'))
+def isinternallink(key, value):
+    return (key == 'Link' and (value[1][0]).startswith('#'))
 
+def isfigurelink(key, value):
+    return (key == 'Link' and (value[1][0]).startswith('#fig'))
 
 def isattr(string):
     return string.startswith('{') and string.endswith('}')
@@ -90,9 +92,12 @@ def figure_number(key, value, format, metadata):
                                                       caption=caption,
                                                       label=label[1:]))])
 
+links = {'sec': 'Section',
+         'fig': 'Figure'}
+
 
 def convert_links(key, value, format, metadata):
-    if islinktofigure(key, value) and format in ('html', 'html5'):
+    if isfigurelink(key, value) and format in ('html', 'html5'):
         target = value[1][0]
         try:
             fign = figcount.figlist.index(target) + 1
@@ -101,7 +106,7 @@ def convert_links(key, value, format, metadata):
         text = 'Figure {}'.format(fign)
         return rawhtml(html_link.format(text=text, target=target))
 
-    elif islinktofigure(key, value) and format == 'latex':
+    elif isfigurelink(key, value) and format == 'latex':
         # use autoref instead of hyperref
         label = value[1][0][1:]  # strip leading '#'
         return rawlatex(latex_link.format(label=label))
