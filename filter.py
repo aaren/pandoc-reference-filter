@@ -122,8 +122,8 @@ def convert_links(key, value, format, metadata):
         text = 'Figure {}'.format(fign)
         return rawhtml(html_link.format(text=text, target=target))
 
-    elif isfigurelink(key, value) and format == 'latex':
-        # use autoref instead of hyperref
+    elif isinternallink(key, value) and format == 'latex':
+        # use autoref instead of hyperref for all internal links
         label = value[1][0][1:]  # strip leading '#'
         return rawlatex(latex_link.format(label=label))
 
