@@ -39,12 +39,16 @@ def isinternallink(key, value):
 def isfigurelink(key, value):
     return (key == 'Link' and (value[1][0]).startswith('#fig'))
 
+def issectionlink(key, value):
+    return (key == 'Link' and (value[1][0]).startswith('#sec'))
+
 def isattr(string):
     return string.startswith('{') and string.endswith('}')
 
 
 class FigureCounter(object):
     figlist = []
+    headerlist = []
 
 figcount = FigureCounter()
 
@@ -92,6 +96,7 @@ def figure_number(key, value, format, metadata):
                                                       caption=caption,
                                                       label=label[1:]))])
 
+
 # TODO: section references need to work as well.
 # all internal links should be \autoref in latex output.
 # section headers should have the label correctly defined - i.e. not
@@ -108,6 +113,58 @@ def figure_number(key, value, format, metadata):
 #
 # this constrains language a bit, but maybe workable?
 
+# actually, counting sections isn't that difficult. Headers are
+# represented in the ast as an integer, an attribute list and a list
+# of inline elements.
+#
+# The integer defines the level of header. All we'd need to do is
+# create the list of all headers, along with their level, then
+# number the headers accordingly.
+
+# e.g.
+# [1,  Section 1: La la la
+#  2,  Section 1.1: more lala
+#  2,  Section 1.2
+#  3,  Section 1.2.1
+#  3,  Section 1.2.2
+#  1,  Section 2
+#  2,  Section 2.1
+#  1,] Section 3
+
+class SectionCounter(object):
+    count = [1, 1, 1, 1, 1, 1]
+    secdict = {}
+
+    def increment_count(self, header_level):
+        self.count[header_level - 1] += 1
+        for i, _ in enumerate(self.count[header_level:]):
+            self.count[header_level + i] = 0
+
+    def format_count(self, header_level):
+        return '.'.join(str(i) for i in self.count[:header_level])
+
+sectioncounter = SectionCounter()
+
+def isheader(key, value):
+    return (key == 'Header')
+
+
+def section_number(key, value, format, metadata):
+    if isheader(key, value):
+        level, attr, text = value
+
+        secn = sectioncounter.format_count(level)
+        sectioncounter.increment_count(level)
+
+        label = attr[0]
+        sectioncounter.secdict[label] = secn
+
+        pretext = '{}:'.format(secn)
+        pretext = [pf.Str(pretext), pf.Space()]
+        return pf.Header(level, attr, pretext + text)
+
+# we number using the format x.y.z
+
 links = {'sec': 'Section',
          'fig': 'Figure'}
 
@@ -120,6 +177,15 @@ def convert_links(key, value, format, metadata):
         except IndexError:
             return None
         text = 'Figure {}'.format(fign)
+        return rawhtml(html_link.format(text=text, target=target))
+
+    elif issectionlink(key, value) and format in ('html', 'html5'):
+        target = value[1][0]
+        try:
+            secn = sectioncounter.secdict[target[1:]]
+        except KeyError:
+            return None
+        text = 'Section {}'.format(secn)
         return rawhtml(html_link.format(text=text, target=target))
 
     elif isinternallink(key, value) and format == 'latex':
@@ -168,4 +234,5 @@ def toJSONFilter(actions):
 
 if __name__ == '__main__':
     # toJSONFilter(figure_number)
-    toJSONFilter([figure_number, convert_links])
+    # toJSONFilter([figure_number, convert_links])
+    toJSONFilter([figure_number, section_number, convert_links])
