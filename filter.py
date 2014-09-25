@@ -17,7 +17,7 @@ html_figure = """
 markdown_figure = "![{caption}]({filename})"
 
 latex_link = '\\autoref{{{label}}}'
-html_link = '<a href="{target}">{text}</a>'
+html_link = '<a href="#{label}">{text}</a>'
 
 
 def rawlatex(s):
@@ -43,14 +43,10 @@ def isattrfigure(key, value):
 def isinternallink(key, value):
     return (key == 'Link' and (value[1][0]).startswith('#'))
 
-def isfigurelink(key, value):
-    return (key == 'Link' and (value[1][0]).startswith('#fig'))
-
-def issectionlink(key, value):
-    return (key == 'Link' and (value[1][0]).startswith('#sec'))
 
 def isattr(string):
     return string.startswith('{') and string.endswith('}')
+
 
 def isheader(key, value):
     return (key == 'Header')
@@ -116,126 +112,107 @@ class ReferenceManager(object):
     text of any given internal reference (no need for e.g. 'fig:' at
     the start of labels).
     """
-    figlist = []
-
     section_count = [1, 1, 1, 1, 1, 1]
     secdict = {}
 
     figure_count = 1
     refdict = {}
 
-    def increment_count(self, header_level):
+    replacements = {'figure': 'Figure {}',
+                    'section': 'Section {}'}
+
+    formats = ('html', 'html5', 'markdown', 'latex')
+
+    def increment_section_count(self, header_level):
         self.section_count[header_level - 1] += 1
         for i, _ in enumerate(self.section_count[header_level:]):
             self.section_count[header_level + i] = 0
 
-    def format_count(self, header_level):
+    def format_section_count(self, header_level):
         return '.'.join(str(i) for i in self.section_count[:header_level])
 
-    def figure_number(self, key, value, format, metadata):
-        """We want to number figures in the text: prepending the caption
-        with 'Figure x:', replacing the reference with 'Figure x',
-        putting an id on the figure  and putting a href to the figure id
-        into the reference.
-        """
-        # make the list of figures
+    def consume_references(self, key, value, format, metadata):
         if isattrfigure(key, value):
+            return self.figure_replacement(key, value, format, metadata)
+        elif isheader(key, value) and format in self.formats:
+            return self.section_replacement(key, value, format, metadata)
+
+    def figure_replacement(self, key, value, format, metadata):
             image = value[0]
             attr = value[1]['c']
             filename = image['c'][1][0]
             caption = pf.stringify(image['c'][0])
-            label = attr.strip('{}')
+            label = attr.strip('{}')[1:]
 
-            # TODO: add markdown as an output
+            if label not in self.refdict:
+                self.refdict[label] = {'type': 'figure',
+                                        'id': self.figure_count}
+                self.figure_count += 1
+
+            nfig = len(self.refdict)
+
             if format in ('markdown'):
-                if label not in self.refdict:
-                    self.refdict[label] = self.figure_count
-                    self.figure_count += 1
-
-                nfig = len(self.refdict)
                 caption = 'Figure {n}: {caption}'.format(n=nfig, caption=caption)
-
                 figure = markdown_figure.format(caption=caption,
                                                 filename=filename)
 
                 return pf.Para([rawmarkdown(figure)])
 
             elif format in ('html', 'html5'):
-                if label not in self.refdict:
-                    self.refdict[label] = self.figure_count
-                    self.figure_count += 1
-
-                nfig = len(self.refdict)
                 caption = 'Figure {n}: {caption}'.format(n=nfig, caption=caption)
+                figure = html_figure.format(id=label,
+                                            filename=filename,
+                                            alt=caption,
+                                            caption=caption)
+                return pf.Para([rawhtml(figure)])
 
-                return pf.Para([rawhtml(html_figure.format(id=label[1:],
-                                                        filename=filename,
-                                                        alt=caption,
-                                                        caption=caption))])
             elif format == 'latex':
-                return pf.Para([rawlatex(latex_figure.format(filename=filename,
-                                                        caption=caption,
-                                                        label=label[1:]))])
+                figure = latex_figure.format(filename=filename,
+                                                      caption=caption,
+                                                      label=label)
+                return pf.Para([rawlatex(figure)])
 
-    def section_number(self, key, value, format, metadata):
-        if isheader(key, value) and format in ('html', 'html5', 'markdown'):
-            level, attr, text = value
+    def section_replacement(self, key, value, format, metadata):
+        level, attr, text = value
 
-            secn = self.format_count(level)
-            self.increment_count(level)
+        secn = self.format_section_count(level)
+        self.increment_section_count(level)
 
-            label = attr[0]
-            self.secdict[label] = secn
+        label = attr[0]
+        self.refdict[label] = {'type': 'section',
+                                'id': secn}
 
-            pretext = '{}:'.format(secn)
-            pretext = [pf.Str(pretext), pf.Space()]
-            return pf.Header(level, attr, pretext + text)
+        pretext = '{}:'.format(secn)
+        pretext = [pf.Str(pretext), pf.Space()]
+        return pf.Header(level, attr, pretext + text)
 
     def convert_links(self, key, value, format, metadata):
-        if isfigurelink(key, value) and format in ('html', 'html5'):
-            target = value[1][0]
-            try:
-                fign = self.refdict[target]
-            except IndexError:
-                return None
-            text = 'Figure {}'.format(fign)
-            return rawhtml(html_link.format(text=text, target=target))
-
-        elif issectionlink(key, value) and format in ('html', 'html5'):
-            target = value[1][0]
-            try:
-                secn = self.secdict[target[1:]]
-            except KeyError:
-                return None
-            text = 'Section {}'.format(secn)
-            return rawhtml(html_link.format(text=text, target=target))
-
-        elif isfigurelink(key, value) and format == 'markdown':
-            target = value[1][0]
-            try:
-                fign = self.refdict[target]
-            except IndexError:
-                return None
-            text = 'Figure {}'.format(fign)
-            return rawmarkdown(text)
-
-        elif issectionlink(key, value) and format == 'markdown':
-            target = value[1][0]
-            try:
-                secn = self.secdict[target[1:]]
-            except KeyError:
-                return None
-            text = 'Section {}'.format(secn)
-            return rawmarkdown(text)
-
-        elif isinternallink(key, value) and format == 'latex':
-            # use autoref instead of hyperref for all internal links
+        """Convert all internal links into format specified in
+        self.replacements."""
+        if isinternallink(key, value):
             label = value[1][0][1:]  # strip leading '#'
+            try:
+                id = self.refdict[label]['id']
+                rtype = self.refdict[label]['type']
+            except KeyError:
+                return None
+        else:
+            return None
+
+        text = self.replacements[rtype].format(id)
+
+        if format in ('html', 'html5'):
+            return rawhtml(html_link.format(text=text, label=label))
+        elif format == 'markdown':
+            return rawmarkdown(text)
+        elif format == 'latex':
             return rawlatex(latex_link.format(label=label))
+        else:
+            return None
 
     @property
     def reference_filter(self):
-        return [self.figure_number, self.section_number, self.convert_links]
+        return [self.consume_references, self.convert_links]
 
 
 def toJSONFilter(actions):
