@@ -47,12 +47,6 @@ def isattr(string):
     return string.startswith('{') and string.endswith('}')
 
 
-class FigureCounter(object):
-    figlist = []
-    headerlist = []
-
-figcount = FigureCounter()
-
 # we need to create a list of all of the figures and then cross
 # reference them with the references in the text. The problem is
 # that we need the list of figures before we can replace the text of
@@ -66,38 +60,6 @@ figcount = FigureCounter()
 # count the figures and replace with the right html. The second
 # action will put numbers in all the in text references.
 
-
-def figure_number(key, value, format, metadata):
-    """We want to number figures in the text: prepending the caption
-    with 'Figure x:', replacing the reference with 'Figure x',
-    putting an id on the figure  and putting a href to the figure id
-    into the reference.
-    """
-    # make the list of figures
-    if isattrfigure(key, value):
-        image = value[0]
-        attr = value[1]['c']
-        filename = image['c'][1][0]
-        caption = pf.stringify(image['c'][0])
-        label = attr.strip('{}')
-
-        # TODO: add markdown as an output
-
-        if format in ('html', 'html5'):
-            if label not in figcount.figlist:
-                figcount.figlist.append(label)
-
-            nfig = len(figcount.figlist)
-            caption = 'Figure {n}: {caption}'.format(n=nfig, caption=caption)
-
-            return pf.Para([rawhtml(html_figure.format(id=label[1:],
-                                                    filename=filename,
-                                                    alt=caption,
-                                                    caption=caption))])
-        elif format == 'latex':
-            return pf.Para([rawlatex(latex_figure.format(filename=filename,
-                                                      caption=caption,
-                                                      label=label[1:]))])
 
 
 # TODO: section references need to work as well.
@@ -134,19 +96,66 @@ def figure_number(key, value, format, metadata):
 #  2,  Section 2.1
 #  1,] Section 3
 
-class SectionCounter(object):
-    count = [1, 1, 1, 1, 1, 1]
+class ReferenceManager(object):
+    """Internal reference manager.
+
+    Stores all referencable objects in the document, with a label
+    and a type, then allows us to look up the object and type using
+    a label.
+
+    This means that we can determine the appropriate replacement
+    text of any given internal reference (no need for e.g. 'fig:' at
+    the start of labels).
+    """
+    figlist = []
+
+    section_count = [1, 1, 1, 1, 1, 1]
     secdict = {}
 
     def increment_count(self, header_level):
-        self.count[header_level - 1] += 1
-        for i, _ in enumerate(self.count[header_level:]):
-            self.count[header_level + i] = 0
+        self.section_count[header_level - 1] += 1
+        for i, _ in enumerate(self.section_count[header_level:]):
+            self.section_count[header_level + i] = 0
 
     def format_count(self, header_level):
-        return '.'.join(str(i) for i in self.count[:header_level])
+        return '.'.join(str(i) for i in self.section_count[:header_level])
 
-sectioncounter = SectionCounter()
+refmanager = ReferenceManager()
+
+
+def figure_number(key, value, format, metadata):
+    """We want to number figures in the text: prepending the caption
+    with 'Figure x:', replacing the reference with 'Figure x',
+    putting an id on the figure  and putting a href to the figure id
+    into the reference.
+    """
+    # make the list of figures
+    if isattrfigure(key, value):
+        image = value[0]
+        attr = value[1]['c']
+        filename = image['c'][1][0]
+        caption = pf.stringify(image['c'][0])
+        label = attr.strip('{}')
+
+        # TODO: add markdown as an output
+
+        if format in ('html', 'html5'):
+            if label not in refmanager.figlist:
+                refmanager.figlist.append(label)
+
+            nfig = len(refmanager.figlist)
+            caption = 'Figure {n}: {caption}'.format(n=nfig, caption=caption)
+
+            return pf.Para([rawhtml(html_figure.format(id=label[1:],
+                                                    filename=filename,
+                                                    alt=caption,
+                                                    caption=caption))])
+        elif format == 'latex':
+            return pf.Para([rawlatex(latex_figure.format(filename=filename,
+                                                      caption=caption,
+                                                      label=label[1:]))])
+
+
 
 def isheader(key, value):
     return (key == 'Header')
@@ -156,27 +165,22 @@ def section_number(key, value, format, metadata):
     if isheader(key, value) and format in ('html', 'html5'):
         level, attr, text = value
 
-        secn = sectioncounter.format_count(level)
-        sectioncounter.increment_count(level)
+        secn = refmanager.format_count(level)
+        refmanager.increment_count(level)
 
         label = attr[0]
-        sectioncounter.secdict[label] = secn
+        refmanager.secdict[label] = secn
 
         pretext = '{}:'.format(secn)
         pretext = [pf.Str(pretext), pf.Space()]
         return pf.Header(level, attr, pretext + text)
-
-# we number using the format x.y.z
-
-links = {'sec': 'Section',
-         'fig': 'Figure'}
 
 
 def convert_links(key, value, format, metadata):
     if isfigurelink(key, value) and format in ('html', 'html5'):
         target = value[1][0]
         try:
-            fign = figcount.figlist.index(target) + 1
+            fign = refmanager.figlist.index(target) + 1
         except IndexError:
             return None
         text = 'Figure {}'.format(fign)
@@ -185,7 +189,7 @@ def convert_links(key, value, format, metadata):
     elif issectionlink(key, value) and format in ('html', 'html5'):
         target = value[1][0]
         try:
-            secn = sectioncounter.secdict[target[1:]]
+            secn = refmanager.secdict[target[1:]]
         except KeyError:
             return None
         text = 'Section {}'.format(secn)
