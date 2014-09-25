@@ -14,6 +14,8 @@ html_figure = """
 <figcaption>{caption}</figcaption>
 </figure>"""
 
+markdown_figure = "![{caption}]({filename})"
+
 latex_link = '\\autoref{{{label}}}'
 html_link = '<a href="{target}">{text}</a>'
 
@@ -24,6 +26,10 @@ def rawlatex(s):
 
 def rawhtml(s):
     return pf.RawInline('html', s)
+
+
+def rawmarkdown(s):
+    return pf.RawInline('markdown', s)
 
 
 def isfigure(key, value):
@@ -45,6 +51,9 @@ def issectionlink(key, value):
 
 def isattr(string):
     return string.startswith('{') and string.endswith('}')
+
+def isheader(key, value):
+    return (key == 'Header')
 
 
 # we need to create a list of all of the figures and then cross
@@ -112,6 +121,9 @@ class ReferenceManager(object):
     section_count = [1, 1, 1, 1, 1, 1]
     secdict = {}
 
+    figure_count = 1
+    refdict = {}
+
     def increment_count(self, header_level):
         self.section_count[header_level - 1] += 1
         for i, _ in enumerate(self.section_count[header_level:]):
@@ -120,85 +132,110 @@ class ReferenceManager(object):
     def format_count(self, header_level):
         return '.'.join(str(i) for i in self.section_count[:header_level])
 
-refmanager = ReferenceManager()
+    def figure_number(self, key, value, format, metadata):
+        """We want to number figures in the text: prepending the caption
+        with 'Figure x:', replacing the reference with 'Figure x',
+        putting an id on the figure  and putting a href to the figure id
+        into the reference.
+        """
+        # make the list of figures
+        if isattrfigure(key, value):
+            image = value[0]
+            attr = value[1]['c']
+            filename = image['c'][1][0]
+            caption = pf.stringify(image['c'][0])
+            label = attr.strip('{}')
 
+            # TODO: add markdown as an output
+            if format in ('markdown'):
+                if label not in self.refdict:
+                    self.refdict[label] = self.figure_count
+                    self.figure_count += 1
 
-def figure_number(key, value, format, metadata):
-    """We want to number figures in the text: prepending the caption
-    with 'Figure x:', replacing the reference with 'Figure x',
-    putting an id on the figure  and putting a href to the figure id
-    into the reference.
-    """
-    # make the list of figures
-    if isattrfigure(key, value):
-        image = value[0]
-        attr = value[1]['c']
-        filename = image['c'][1][0]
-        caption = pf.stringify(image['c'][0])
-        label = attr.strip('{}')
+                nfig = len(self.refdict)
+                caption = 'Figure {n}: {caption}'.format(n=nfig, caption=caption)
 
-        # TODO: add markdown as an output
+                figure = markdown_figure.format(caption=caption,
+                                                filename=filename)
 
-        if format in ('html', 'html5'):
-            if label not in refmanager.figlist:
-                refmanager.figlist.append(label)
+                return pf.Para([rawmarkdown(figure)])
 
-            nfig = len(refmanager.figlist)
-            caption = 'Figure {n}: {caption}'.format(n=nfig, caption=caption)
+            elif format in ('html', 'html5'):
+                if label not in self.refdict:
+                    self.refdict[label] = self.figure_count
+                    self.figure_count += 1
 
-            return pf.Para([rawhtml(html_figure.format(id=label[1:],
-                                                    filename=filename,
-                                                    alt=caption,
-                                                    caption=caption))])
-        elif format == 'latex':
-            return pf.Para([rawlatex(latex_figure.format(filename=filename,
-                                                      caption=caption,
-                                                      label=label[1:]))])
+                nfig = len(self.refdict)
+                caption = 'Figure {n}: {caption}'.format(n=nfig, caption=caption)
 
+                return pf.Para([rawhtml(html_figure.format(id=label[1:],
+                                                        filename=filename,
+                                                        alt=caption,
+                                                        caption=caption))])
+            elif format == 'latex':
+                return pf.Para([rawlatex(latex_figure.format(filename=filename,
+                                                        caption=caption,
+                                                        label=label[1:]))])
 
+    def section_number(self, key, value, format, metadata):
+        if isheader(key, value) and format in ('html', 'html5', 'markdown'):
+            level, attr, text = value
 
-def isheader(key, value):
-    return (key == 'Header')
+            secn = self.format_count(level)
+            self.increment_count(level)
 
+            label = attr[0]
+            self.secdict[label] = secn
 
-def section_number(key, value, format, metadata):
-    if isheader(key, value) and format in ('html', 'html5'):
-        level, attr, text = value
+            pretext = '{}:'.format(secn)
+            pretext = [pf.Str(pretext), pf.Space()]
+            return pf.Header(level, attr, pretext + text)
 
-        secn = refmanager.format_count(level)
-        refmanager.increment_count(level)
+    def convert_links(self, key, value, format, metadata):
+        if isfigurelink(key, value) and format in ('html', 'html5'):
+            target = value[1][0]
+            try:
+                fign = self.refdict[target]
+            except IndexError:
+                return None
+            text = 'Figure {}'.format(fign)
+            return rawhtml(html_link.format(text=text, target=target))
 
-        label = attr[0]
-        refmanager.secdict[label] = secn
+        elif issectionlink(key, value) and format in ('html', 'html5'):
+            target = value[1][0]
+            try:
+                secn = self.secdict[target[1:]]
+            except KeyError:
+                return None
+            text = 'Section {}'.format(secn)
+            return rawhtml(html_link.format(text=text, target=target))
 
-        pretext = '{}:'.format(secn)
-        pretext = [pf.Str(pretext), pf.Space()]
-        return pf.Header(level, attr, pretext + text)
+        elif isfigurelink(key, value) and format == 'markdown':
+            target = value[1][0]
+            try:
+                fign = self.refdict[target]
+            except IndexError:
+                return None
+            text = 'Figure {}'.format(fign)
+            return rawmarkdown(text)
 
+        elif issectionlink(key, value) and format == 'markdown':
+            target = value[1][0]
+            try:
+                secn = self.secdict[target[1:]]
+            except KeyError:
+                return None
+            text = 'Section {}'.format(secn)
+            return rawmarkdown(text)
 
-def convert_links(key, value, format, metadata):
-    if isfigurelink(key, value) and format in ('html', 'html5'):
-        target = value[1][0]
-        try:
-            fign = refmanager.figlist.index(target) + 1
-        except IndexError:
-            return None
-        text = 'Figure {}'.format(fign)
-        return rawhtml(html_link.format(text=text, target=target))
+        elif isinternallink(key, value) and format == 'latex':
+            # use autoref instead of hyperref for all internal links
+            label = value[1][0][1:]  # strip leading '#'
+            return rawlatex(latex_link.format(label=label))
 
-    elif issectionlink(key, value) and format in ('html', 'html5'):
-        target = value[1][0]
-        try:
-            secn = refmanager.secdict[target[1:]]
-        except KeyError:
-            return None
-        text = 'Section {}'.format(secn)
-        return rawhtml(html_link.format(text=text, target=target))
-
-    elif isinternallink(key, value) and format == 'latex':
-        # use autoref instead of hyperref for all internal links
-        label = value[1][0][1:]  # strip leading '#'
-        return rawlatex(latex_link.format(label=label))
+    @property
+    def reference_filter(self):
+        return [self.figure_number, self.section_number, self.convert_links]
 
 
 def toJSONFilter(actions):
@@ -240,6 +277,5 @@ def toJSONFilter(actions):
 
 
 if __name__ == '__main__':
-    # toJSONFilter(figure_number)
-    # toJSONFilter([figure_number, convert_links])
-    toJSONFilter([figure_number, section_number, convert_links])
+    refmanager = ReferenceManager()
+    toJSONFilter(refmanager.reference_filter)
