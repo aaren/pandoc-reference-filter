@@ -106,40 +106,39 @@ class ReferenceManager(object):
             return self.section_replacement(key, value, format, metadata)
 
     def figure_replacement(self, key, value, format, metadata):
-            image = value[0]
-            attr = value[1]['c']
-            filename = image['c'][1][0]
-            raw_caption = pf.stringify(image['c'][0])
-            # TODO: write a proper attribute parser
-            label = attr.strip('{}')[1:]
+        image = value[0]
+        attr = value[1]['c']
+        filename = image['c'][1][0]
+        raw_caption = pf.stringify(image['c'][0])
+        # TODO: write a proper attribute parser
+        label = attr.strip('{}')[1:]
 
-            if label not in self.refdict:
-                self.refdict[label] = {'type': 'figure',
-                                        'id': self.figure_count}
-                self.figure_count += 1
+        if label not in self.refdict:
+            self.refdict[label] = {'type': 'figure',
+                                    'id': self.figure_count}
+            self.figure_count += 1
 
-            nfig = len(self.refdict)
-            caption = 'Figure {n}: {caption}'.format(n=nfig,
-                                                     caption=raw_caption)
+        nfig = len(self.refdict)
+        caption = 'Figure {n}: {caption}'.format(n=nfig, caption=raw_caption)
 
-            if format in ('markdown'):
-                figure = markdown_figure.format(caption=caption,
-                                                filename=filename)
+        if format in ('markdown'):
+            figure = markdown_figure.format(caption=caption,
+                                            filename=filename)
 
-                return pf.Para([rawmarkdown(figure)])
+            return pf.Para([rawmarkdown(figure)])
 
-            elif format in ('html', 'html5'):
-                figure = html_figure.format(id=label,
-                                            filename=filename,
-                                            alt=caption,
-                                            caption=caption)
-                return pf.Para([rawhtml(figure)])
+        elif format in ('html', 'html5'):
+            figure = html_figure.format(id=label,
+                                        filename=filename,
+                                        alt=caption,
+                                        caption=caption)
+            return pf.Para([rawhtml(figure)])
 
-            elif format == 'latex':
-                figure = latex_figure.format(filename=filename,
-                                             caption=raw_caption,
-                                             label=label)
-                return pf.Para([rawlatex(figure)])
+        elif format == 'latex':
+            figure = latex_figure.format(filename=filename,
+                                            caption=raw_caption,
+                                            label=label)
+            return pf.Para([rawlatex(figure)])
 
     def section_replacement(self, key, value, format, metadata):
         level, attr, text = value
