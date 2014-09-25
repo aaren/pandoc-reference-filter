@@ -52,55 +52,6 @@ def isheader(key, value):
     return (key == 'Header')
 
 
-# we need to create a list of all of the figures and then cross
-# reference them with the references in the text. The problem is
-# that we need the list of figures before we can replace the text of
-# the references, which we can't do with a single filter (because we
-# can have the in text references appearing before the figures in
-# the ast, which leaves them not knowing what number their figure
-# is).
-
-# to solve this we need to alter toJSONFilter so that it can take a
-# sequence of actions to apply to the tree. The first action will
-# count the figures and replace with the right html. The second
-# action will put numbers in all the in text references.
-
-
-
-# TODO: section references need to work as well.
-# all internal links should be \autoref in latex output.
-# section headers should have the label correctly defined - i.e. not
-# as a hyperlink
-# counting sections is trickier because of subsections - we can have
-# e.g. 'a reference to Section 1.1.2'
-# could just use some generic text, 'above' 'below'
-
-# or 'see above' / 'Section x.y' for html / latex
-# e.g.
-# markdown: "we're talking about this thing ([see above](#sec:ref))"
-# -> latex: "we're talking about this thing (\autoref{sec:ref})"
-# -> html:  "we're talking about this thing (<a href="#sec:ref">see above</a>)
-#
-# this constrains language a bit, but maybe workable?
-
-# actually, counting sections isn't that difficult. Headers are
-# represented in the ast as an integer, an attribute list and a list
-# of inline elements.
-#
-# The integer defines the level of header. All we'd need to do is
-# create the list of all headers, along with their level, then
-# number the headers accordingly.
-
-# e.g.
-# [1,  Section 1: La la la
-#  2,  Section 1.1: more lala
-#  2,  Section 1.2
-#  3,  Section 1.2.1
-#  3,  Section 1.2.2
-#  1,  Section 2
-#  2,  Section 2.1
-#  1,] Section 3
-
 class ReferenceManager(object):
     """Internal reference manager.
 
@@ -124,14 +75,31 @@ class ReferenceManager(object):
     formats = ('html', 'html5', 'markdown', 'latex')
 
     def increment_section_count(self, header_level):
+        """Changing the section count is dependent on the header level.
+
+        When we add to the section count, we want to reset the
+        count for all headers at a higher header level than that
+        given, increment the count at the header level, and leave
+        the same all lower levels.
+        """
         self.section_count[header_level - 1] += 1
         for i, _ in enumerate(self.section_count[header_level:]):
             self.section_count[header_level + i] = 0
 
     def format_section_count(self, header_level):
+        """Format the section count for a given header level,
+        leaving off info from higher header levels,
+
+        e.g. section_count = [1, 2, 4, 3]
+        format_section_count(3) == '1.2.4'
+        """
         return '.'.join(str(i) for i in self.section_count[:header_level])
 
     def consume_references(self, key, value, format, metadata):
+        """Find all figures and sections that can be referenced in
+        the document and replace them with appropriate text whilst
+        appending to the internal refdict.
+        """
         if isattrfigure(key, value):
             return self.figure_replacement(key, value, format, metadata)
         elif isheader(key, value) and format in self.formats:
@@ -141,7 +109,8 @@ class ReferenceManager(object):
             image = value[0]
             attr = value[1]['c']
             filename = image['c'][1][0]
-            caption = pf.stringify(image['c'][0])
+            raw_caption = pf.stringify(image['c'][0])
+            # TODO: write a proper attribute parser
             label = attr.strip('{}')[1:]
 
             if label not in self.refdict:
@@ -150,16 +119,16 @@ class ReferenceManager(object):
                 self.figure_count += 1
 
             nfig = len(self.refdict)
+            caption = 'Figure {n}: {caption}'.format(n=nfig,
+                                                     caption=raw_caption)
 
             if format in ('markdown'):
-                caption = 'Figure {n}: {caption}'.format(n=nfig, caption=caption)
                 figure = markdown_figure.format(caption=caption,
                                                 filename=filename)
 
                 return pf.Para([rawmarkdown(figure)])
 
             elif format in ('html', 'html5'):
-                caption = 'Figure {n}: {caption}'.format(n=nfig, caption=caption)
                 figure = html_figure.format(id=label,
                                             filename=filename,
                                             alt=caption,
@@ -168,8 +137,8 @@ class ReferenceManager(object):
 
             elif format == 'latex':
                 figure = latex_figure.format(filename=filename,
-                                                      caption=caption,
-                                                      label=label)
+                                             caption=raw_caption,
+                                             label=label)
                 return pf.Para([rawlatex(figure)])
 
     def section_replacement(self, key, value, format, metadata):
