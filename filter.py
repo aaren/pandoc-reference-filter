@@ -80,6 +80,8 @@ def figure_number(key, value, format, metadata):
         caption = pf.stringify(image['c'][0])
         label = attr.strip('{}')
 
+        # TODO: add markdown as an output
+
         if format in ('html', 'html5'):
             if label not in figcount.figlist:
                 figcount.figlist.append(label)
