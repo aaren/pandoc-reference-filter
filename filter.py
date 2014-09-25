@@ -4,7 +4,8 @@ latex_figure = """
 \\begin{{figure}}[htbp]
 \\centering
 \\includegraphics{{{filename}}}
-\\caption{{{caption}\\label{{{label}}}}}
+\\caption{{{caption}}}
+\\label{{{label}}}
 \\end{{figure}}"""
 
 html_figure = """
