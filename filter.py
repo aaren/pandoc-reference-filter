@@ -153,7 +153,7 @@ def isheader(key, value):
 
 
 def section_number(key, value, format, metadata):
-    if isheader(key, value):
+    if isheader(key, value) and format in ('html', 'html5'):
         level, attr, text = value
 
         secn = sectioncounter.format_count(level)
