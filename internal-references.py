@@ -127,10 +127,12 @@ class ReferenceManager(object):
 
         if label not in self.refdict:
             self.refdict[label] = {'type': 'figure',
-                                    'id': self.figure_count}
+                                   'id': self.figure_count}
             self.figure_count += 1
 
-        nfig = len(self.refdict)
+        figures_only = {k: v for k, v in self.refdict.items()
+                             if v['type'] == 'figure'}
+        nfig = len(figures_only)
         caption = 'Figure {n}: {caption}'.format(n=nfig, caption=raw_caption)
 
         if format == 'markdown':
