@@ -20,10 +20,16 @@ html_figure = """
 </div>
 """
 
-markdown_figure = "![{caption}]({filename})"
+markdown_figure = """
+<div id="{id}">
+![{caption}]({filename})
+
+</div>
+"""
 
 latex_link = '\\autoref{{{label}}}'
 html_link = '<a href="#{label}">{text}</a>'
+markdown_link = '[{text}](#{label})'
 
 
 def rawlatex(s):
@@ -128,7 +134,8 @@ class ReferenceManager(object):
         caption = 'Figure {n}: {caption}'.format(n=nfig, caption=raw_caption)
 
         if format == 'markdown':
-            figure = markdown_figure.format(caption=caption,
+            figure = markdown_figure.format(id=label,
+                                            caption=caption,
                                             filename=filename)
 
             return pf.Para([rawmarkdown(figure)])
@@ -149,8 +156,8 @@ class ReferenceManager(object):
 
         elif format == 'latex':
             figure = latex_figure.format(filename=filename,
-                                            caption=raw_caption,
-                                            label=label)
+                                         caption=raw_caption,
+                                         label=label)
             return pf.Para([rawlatex(figure)])
 
     def section_replacement(self, key, value, format, metadata):
@@ -191,7 +198,7 @@ class ReferenceManager(object):
         if format in ('html', 'html5'):
             return rawhtml(html_link.format(text=text, label=label))
         elif format == 'markdown':
-            return rawmarkdown(text)
+            return rawmarkdown(markdown_link.format(text=text, label=label))
         elif format == 'latex':
             return rawlatex(latex_link.format(label=label))
         else:
