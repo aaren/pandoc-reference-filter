@@ -15,7 +15,7 @@ html5_figure = """
 </figure>"""
 
 html_figure = """
-<div class="figure", id="{id}">
+<div class="figure" id="{id}">
 <img src="{filename}" alt="{alt}" /><p class="caption">{caption}</p>
 </div>
 """
