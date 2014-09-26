@@ -152,7 +152,13 @@ class ReferenceManager(object):
 
         pretext = '{}:'.format(secn)
         pretext = [pf.Str(pretext), pf.Space()]
-        return pf.Header(level, attr, pretext + text)
+
+        if format in ('html', 'html5', 'markdown'):
+            return pf.Header(level, attr, pretext + text)
+
+        elif format == 'latex':
+            # have to do this to get rid of hyperref
+            return pf.Header(level, attr, text)
 
     def convert_links(self, key, value, format, metadata):
         """Convert all internal links into format specified in
