@@ -125,15 +125,12 @@ class ReferenceManager(object):
         # TODO: write a proper attribute parser
         label = attr.strip('{}')[1:]
 
-        if label not in self.refdict:
-            self.refdict[label] = {'type': 'figure',
-                                   'id': self.figure_count}
-            self.figure_count += 1
+        self.refdict[label] = {'type': 'figure',
+                               'id': self.figure_count}
 
-        figures_only = {k: v for k, v in self.refdict.items()
-                             if v['type'] == 'figure'}
-        nfig = len(figures_only)
-        caption = 'Figure {n}: {caption}'.format(n=nfig, caption=raw_caption)
+        caption = 'Figure {n}: {caption}'.format(n=self.figure_count,
+                                                 caption=raw_caption)
+        self.figure_count += 1
 
         if format == 'markdown':
             figure = markdown_figure.format(id=label,
