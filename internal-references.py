@@ -8,11 +8,17 @@ latex_figure = """
 \\label{{{label}}}
 \\end{{figure}}"""
 
-html_figure = """
+html5_figure = """
 <figure id="{id}">
 <img src="{filename}" alt="{alt}" />
 <figcaption>{caption}</figcaption>
 </figure>"""
+
+html_figure = """
+<div class="figure", id="{id}">
+<img src="{filename}" alt="{alt}" /><p class="caption">{caption}</p>
+</div>
+"""
 
 markdown_figure = "![{caption}]({filename})"
 
@@ -121,17 +127,24 @@ class ReferenceManager(object):
         nfig = len(self.refdict)
         caption = 'Figure {n}: {caption}'.format(n=nfig, caption=raw_caption)
 
-        if format in ('markdown'):
+        if format == 'markdown':
             figure = markdown_figure.format(caption=caption,
                                             filename=filename)
 
             return pf.Para([rawmarkdown(figure)])
 
-        elif format in ('html', 'html5'):
+        elif format == 'html':
             figure = html_figure.format(id=label,
                                         filename=filename,
                                         alt=caption,
                                         caption=caption)
+            return pf.Para([rawhtml(figure)])
+
+        elif format == 'html5':
+            figure = html5_figure.format(id=label,
+                                         filename=filename,
+                                         alt=caption,
+                                         caption=caption)
             return pf.Para([rawhtml(figure)])
 
         elif format == 'latex':
