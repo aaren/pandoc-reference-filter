@@ -1,15 +1,15 @@
 <h2 id="sec:expt">1.1: Experiments with pandoc figures</h2>
 <p>
 <figure id="fig:attr">
-<img src="image.png" alt="Figure 2: a figure that can be referred to" />
-<figcaption>Figure 2: a figure that can be referred to</figcaption>
+<img src="image.png" alt="Figure 1: a figure that can be referred to" />
+<figcaption>Figure 1: a figure that can be referred to</figcaption>
 </figure></p>
 <p>Here is a reference to <a href="#fig:attr">Figure 1</a> and here is one to <a href="#fig:attr2">Figure 2</a>.</p>
 <p>Here is reference to the section called <a href="#sec:expt">Section 1.1</a>.</p>
 <p>
 <figure id="fig:attr2">
-<img src="image.png" alt="Figure 3: another figure that can be referred to" />
-<figcaption>Figure 3: another figure that can be referred to</figcaption>
+<img src="image.png" alt="Figure 2: another figure that can be referred to" />
+<figcaption>Figure 2: another figure that can be referred to</figcaption>
 </figure></p>
 <figure>
 <img src="image.png" alt="figure with no attr" /><figcaption>figure with no attr</figcaption>
