@@ -17,14 +17,45 @@ For example input see the [spec] and for the output see [markdown],
 [latex]: tests/spec.latex
 
 
-Usage:
+### Usage:
 
 ```bash
 pandoc spec.md --filter internal-references.py --to latex
 ```
 
-Testing:
+
+### Testing:
 
 ```bash
 python tests/tests.py
 ```
+
+
+### How it works:
+
+In order to manage references we need to maintain some internal
+state that tracks the objects that can be referenced in the
+document. This is implemented with the `ReferenceManager`.
+
+`pandocfilters` contains a function `toJSONFilter` that passes a
+given function over the entire document syntax tree and interfaces
+with pandoc via stdin/stdout.
+
+However, we need to walk the document tree twice, once to capture all of the
+objects (figures, sections, whatever) and again to change all of the
+internal links to the appropriate output. This requires a modified
+`toJSONFilter` that accepts a list of functions to pass the tree
+through sequentially.
+
+It is easy to determine the type of a reference object as we go
+along (whether figure, section or whatever) on the first pass and we
+can use this information to let us choose the right text for
+internal links on the second pass. This allows us to avoid being
+constrained to ids like '#fig:somefigure' to indicate a figure.
+
+
+### Contributing:
+
+Very welcome. Please use verbose commit messages and pull requests.
+Explain what you are trying to do in English so that I don't have to
+work it out through the code.
