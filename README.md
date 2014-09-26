@@ -1,5 +1,5 @@
 This pandoc filter implements an internal reference manager for
-pandoc, making it possible to reference images, and sections that
+pandoc, making it possible to reference images and sections that
 have attribute tags.
 
 Supported output formats are latex, html, html5 and markdown. The
