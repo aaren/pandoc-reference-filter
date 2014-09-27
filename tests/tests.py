@@ -35,27 +35,23 @@ def _test(format):
     ref_file = 'tests/spec.{ext}'.format(ext=format)
 
     with open(ref_file) as f:
-        return pandoc_output, f.read()
+        nt.assert_multi_line_equal(pandoc_output, f.read())
 
 
 def test_markdown():
-    pandoc_output, ref = _test('markdown')
-    assert(pandoc_output == ref)
+    _test('markdown')
 
 
 def test_html():
-    pandoc_output, ref = _test('html')
-    assert(pandoc_output == ref)
+    _test('html')
 
 
 def test_html5():
-    pandoc_output, ref = _test('html5')
-    assert(pandoc_output == ref)
+    _test('html5')
 
 
 def test_latex():
-    pandoc_output, ref = _test('latex')
-    assert(pandoc_output == ref)
+    _test('latex')
 
 
 def test_all_formats():
