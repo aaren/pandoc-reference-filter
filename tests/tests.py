@@ -14,7 +14,7 @@ def test_attributes():
                 'key2': '"o\'brien = 1"'
                 }
 
-    attr_dict = internalreferences.parse_attributes(attr_string)
+    attr_dict = internalreferences.attr_parser.parse(attr_string)
     print ref_dict
     print attr_dict
     nt.assert_dict_equal(ref_dict, attr_dict)

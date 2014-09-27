@@ -34,39 +34,44 @@ html_link = '<a href="#{label}">{text}</a>'
 markdown_link = '[{text}](#{label})'
 
 
-def isid(string):
-    return string.startswith('#')
-
-
-def isclass(string):
-    return string.startswith('.')
-
-
-def iskv(string):
-    return ('=' in string)
-
-
-def isspecial(string):
-    return '-' == string
-
-
-def parse_attributes(attr_string):
-    attr_string = attr_string.strip('{}')
-    split_regex = r'''((?:[^{separator}"']|"[^"]*"|'[^']*')+)'''.format
+class AttributeParser(object):
     spnl = ' \n'
-    splitter = re.compile(split_regex(separator=spnl))
-    attrs = splitter.split(attr_string)[1::2]
 
-    id = [a[1:] for a in attrs if isid(a)]
-    classes = [a[1:] for a in attrs if isclass(a)]
-    kvs = [a.split('=', 1) for a in attrs if iskv(a)]
-    special = ['unnumbered' for a in attrs if isspecial(a)]
+    @staticmethod
+    def isid(string):
+        return string.startswith('#')
 
-    attr_dict = {k: v for k, v in kvs}
-    attr_dict['id'] = id[0] if id else ""
-    attr_dict['classes'] = classes + special
+    @staticmethod
+    def isclass(string):
+        return string.startswith('.')
 
-    return attr_dict
+    @staticmethod
+    def iskv(string):
+        return ('=' in string)
+
+    @staticmethod
+    def isspecial(string):
+        return '-' == string
+
+    @classmethod
+    def parse(self, attr_string):
+        attr_string = attr_string.strip('{}')
+        split_regex = r'''((?:[^{separator}"']|"[^"]*"|'[^']*')+)'''.format
+        splitter = re.compile(split_regex(separator=self.spnl))
+        attrs = splitter.split(attr_string)[1::2]
+
+        id = [a[1:] for a in attrs if self.isid(a)]
+        classes = [a[1:] for a in attrs if self.isclass(a)]
+        kvs = [a.split('=', 1) for a in attrs if self.iskv(a)]
+        special = ['unnumbered' for a in attrs if self.isspecial(a)]
+
+        attr_dict = {k: v for k, v in kvs}
+        attr_dict['id'] = id[0] if id else ""
+        attr_dict['classes'] = classes + special
+
+        return attr_dict
+
+attr_parser = AttributeParser()
 
 
 def rawlatex(s):
@@ -162,7 +167,7 @@ class ReferenceManager(object):
         filename = image['c'][1][0]
         raw_caption = pf.stringify(image['c'][0])
         # TODO: write a proper attribute parser
-        attrs = parse_attributes(attr_string)
+        attrs = attr_parser.parse(attr_string)
         label = attrs['id']
         classes = 'class="{}"'.format(' '.join(attrs['classes'])) \
                     if attrs['classes'] else ''
