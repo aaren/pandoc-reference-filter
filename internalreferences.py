@@ -166,13 +166,14 @@ class ReferenceManager(object):
         attr_string = pf.stringify(value[1:])
         filename = image['c'][1][0]
         raw_caption = pf.stringify(image['c'][0])
-        # TODO: write a proper attribute parser
         attrs = attr_parser.parse(attr_string)
+
         label = attrs['id']
-        classes = 'class="{}"'.format(' '.join(attrs['classes'])) \
-                    if attrs['classes'] else ''
-        keys = ' '.join('{}={}'.format(k, v) for k, v in attrs.items()
-                                             if k not in ('id', 'classes'))
+        classes = attrs['classes']
+        keys = [(k, v) for k, v in attrs.items() if k not in ('id', 'classes')]
+
+        class_str = 'class="{}"'.format(' '.join(classes)) if classes else ''
+        key_str = ' '.join('{}={}'.format(k, v) for k, v in keys)
 
         self.refdict[label] = {'type': 'figure',
                                'id': self.figure_count}
@@ -190,8 +191,8 @@ class ReferenceManager(object):
 
         elif format == 'html':
             figure = html_figure.format(id=label,
-                                        classes=classes,
-                                        keys=keys,
+                                        classes=class_str,
+                                        keys=key_str,
                                         filename=filename,
                                         alt=caption,
                                         caption=caption)
@@ -199,8 +200,8 @@ class ReferenceManager(object):
 
         elif format == 'html5':
             figure = html5_figure.format(id=label,
-                                         classes=classes,
-                                         keys=keys,
+                                         classes=class_str,
+                                         keys=key_str,
                                          filename=filename,
                                          alt=caption,
                                          caption=caption)
