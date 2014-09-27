@@ -23,16 +23,18 @@ For example input see the [spec] and for the output see [markdown],
 pandoc spec.md --filter internal-references.py --to latex
 ```
 
+alternately you can install it and use the command line link:
+
+```bash
+python setup.py install
+pandoc spec.md --filter internal-references --to latex
+```
+
+
 Requires [pandocfilters] and [pandoc].
 
 [pandocfilters]: https://pypi.python.org/pypi/pandocfilters
 [pandoc]: http://johnmacfarlane.net/pandoc/
-
-### Testing:
-
-```bash
-python tests/tests.py
-```
 
 
 ### How it works:
@@ -45,11 +47,11 @@ document. This is implemented with the `ReferenceManager`.
 given function over the entire document syntax tree and interfaces
 with pandoc via stdin/stdout.
 
-However, we need to walk the document tree twice, once to capture all of the
-objects (figures, sections, whatever) and again to change all of the
-internal links to the appropriate output. This requires a modified
-`toJSONFilter` that accepts a list of functions to pass the tree
-through sequentially.
+However, we need to walk the document tree twice, once to capture
+all of the objects (figures, sections, whatever) and again to change
+all of the internal links to the appropriate output. This requires a
+modified `toJSONFilter` that accepts a list of functions to pass the
+tree through sequentially.
 
 It is easy to determine the type of a reference object as we go
 along (whether figure, section or whatever) on the first pass and we
@@ -58,8 +60,14 @@ internal links on the second pass. This allows us to avoid being
 constrained to ids like '#fig:somefigure' to indicate a figure.
 
 
+### TODO:
+
+- [ ] allow switching off figure / section text replacement (perhaps
+  using document metadata as the switch)
+
+
 ### Contributing:
 
-Very welcome. Please use verbose commit messages and pull requests.
-Explain what you are trying to do in English so that I don't have to
-work it out through the code.
+Very welcome. Make sure you add appropriate tests and use verbose
+commit messages and pull requests.  Explain what you are trying to
+do in English so that I don't have to work it out through the code.
