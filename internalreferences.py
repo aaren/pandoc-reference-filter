@@ -300,6 +300,9 @@ def toJSONFilter(actions):
     pf.json.dump(altered, pf.sys.stdout)
 
 
-if __name__ == '__main__':
+def main():
     refmanager = ReferenceManager()
     toJSONFilter(refmanager.reference_filter)
+
+if __name__ == '__main__':
+    main()
