@@ -162,6 +162,9 @@ class ReferenceManager(object):
             return self.section_replacement(key, value, format, metadata)
 
     def figure_replacement(self, key, value, format, metadata):
+        """Replace figures with appropriate representation and
+        append info to the refdict.
+        """
         image = value[0]
         attr_string = pf.stringify(value[1:])
         filename = image['c'][1][0]
@@ -214,6 +217,9 @@ class ReferenceManager(object):
             return pf.Para([rawlatex(figure)])
 
     def section_replacement(self, key, value, format, metadata):
+        """Replace sections with appropriate representation and
+        append info to the refdict.
+        """
         level, attr, text = value
 
         secn = self.format_section_count(level)
