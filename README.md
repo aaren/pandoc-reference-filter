@@ -23,6 +23,10 @@ For example input see the [spec] and for the output see [markdown],
 pandoc spec.md --filter internal-references.py --to latex
 ```
 
+Requires [pandocfilters] and [pandoc].
+
+[pandocfilters]: https://pypi.python.org/pypi/pandocfilters
+[pandoc]: http://johnmacfarlane.net/pandoc/
 
 ### Testing:
 
