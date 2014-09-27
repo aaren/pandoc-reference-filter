@@ -1,5 +1,21 @@
 import subprocess
 
+import nose.tools as nt
+
+import internalreferences
+
+
+def test_attributes():
+    attr_string = r"""{#identify .class1 .class2
+    key1=blah key2="o'brien = 1" -}"""
+    ref_dict = {'id': 'identify',
+                'classes': ['class1', 'class2', 'unnumbered'],
+                'kv': {'key1': 'blah', 'key2': "o'brien = 1"}
+                }
+
+    attr_dict = internalreferences.parse_attributes(attr_string)
+    nt.assert_dict_equal(ref_dict, attr_dict)
+
 
 def call_pandoc(format):
     pandoc_cmd = ('pandoc', 'spec.md',
