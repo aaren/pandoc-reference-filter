@@ -11,13 +11,13 @@ latex_figure = """
 \\end{{figure}}"""
 
 html5_figure = """
-<figure id="{id}">
+<figure id="{id}" {classes} {keys}>
 <img src="{filename}" alt="{alt}" />
 <figcaption>{caption}</figcaption>
 </figure>"""
 
 html_figure = """
-<div class="figure" id="{id}">
+<div class="figure" id="{id}" {classes} {keys}>
 <img src="{filename}" alt="{alt}" /><p class="caption">{caption}</p>
 </div>
 """
@@ -164,6 +164,10 @@ class ReferenceManager(object):
         # TODO: write a proper attribute parser
         attrs = parse_attributes(attr_string)
         label = attrs['id']
+        classes = 'class="{}"'.format(' '.join(attrs['classes'])) \
+                    if attrs['classes'] else ''
+        keys = ' '.join('{}={}'.format(k, v) for k, v in attrs.items()
+                                             if k not in ('id', 'classes'))
 
         self.refdict[label] = {'type': 'figure',
                                'id': self.figure_count}
@@ -181,6 +185,8 @@ class ReferenceManager(object):
 
         elif format == 'html':
             figure = html_figure.format(id=label,
+                                        classes=classes,
+                                        keys=keys,
                                         filename=filename,
                                         alt=caption,
                                         caption=caption)
@@ -188,6 +194,8 @@ class ReferenceManager(object):
 
         elif format == 'html5':
             figure = html5_figure.format(id=label,
+                                         classes=classes,
+                                         keys=keys,
                                          filename=filename,
                                          alt=caption,
                                          caption=caption)

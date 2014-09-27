@@ -1,4 +1,4 @@
-1.1: Experiments with pandoc figures {#sec:expt}
+1.1: Experiments with pandoc figures {#sec:expt .class1 .class2 key="value"}
 ------------------------------------
 
 
