@@ -49,7 +49,9 @@ def isfigure(key, value):
 
 
 def isattrfigure(key, value):
-    return (isfigure(key, value) and isattr(value[1]['c']))
+    return (key == 'Para'
+            and value[0]['t'] == 'Image'
+            and isattr(pf.stringify(value[1:])))
 
 
 def isinternallink(key, value):
@@ -119,7 +121,7 @@ class ReferenceManager(object):
 
     def figure_replacement(self, key, value, format, metadata):
         image = value[0]
-        attr = value[1]['c']
+        attr = pf.stringify(value[1:])
         filename = image['c'][1][0]
         raw_caption = pf.stringify(image['c'][0])
         # TODO: write a proper attribute parser
