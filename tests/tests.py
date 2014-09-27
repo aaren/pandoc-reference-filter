@@ -10,10 +10,13 @@ def test_attributes():
     key1=blah key2="o'brien = 1" -}"""
     ref_dict = {'id': 'identify',
                 'classes': ['class1', 'class2', 'unnumbered'],
-                'kv': {'key1': 'blah', 'key2': "o'brien = 1"}
+                'key1': 'blah',
+                'key2': '"o\'brien = 1"'
                 }
 
     attr_dict = internalreferences.parse_attributes(attr_string)
+    print ref_dict
+    print attr_dict
     nt.assert_dict_equal(ref_dict, attr_dict)
 
 

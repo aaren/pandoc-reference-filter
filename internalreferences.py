@@ -1,3 +1,5 @@
+import re
+
 import pandocfilters as pf
 
 latex_figure = """
@@ -30,6 +32,41 @@ markdown_figure = """
 latex_link = '\\autoref{{{label}}}'
 html_link = '<a href="#{label}">{text}</a>'
 markdown_link = '[{text}](#{label})'
+
+
+def isid(string):
+    return string.startswith('#')
+
+
+def isclass(string):
+    return string.startswith('.')
+
+
+def iskv(string):
+    return ('=' in string)
+
+
+def isspecial(string):
+    return '-' == string
+
+
+def parse_attributes(attr_string):
+    attr_string = attr_string.strip('{}')
+    split_regex = r'''((?:[^{separator}"']|"[^"]*"|'[^']*')+)'''.format
+    spnl = ' \n'
+    splitter = re.compile(split_regex(separator=spnl))
+    attrs = splitter.split(attr_string)[1::2]
+
+    id = [a[1:] for a in attrs if isid(a)]
+    classes = [a[1:] for a in attrs if isclass(a)]
+    kvs = [a.split('=', 1) for a in attrs if iskv(a)]
+    special = ['unnumbered' for a in attrs if isspecial(a)]
+
+    attr_dict = {k: v for k, v in kvs}
+    attr_dict['id'] = id[0] if id else ""
+    attr_dict['classes'] = classes + special
+
+    return attr_dict
 
 
 def rawlatex(s):
@@ -121,11 +158,12 @@ class ReferenceManager(object):
 
     def figure_replacement(self, key, value, format, metadata):
         image = value[0]
-        attr = pf.stringify(value[1:])
+        attr_string = pf.stringify(value[1:])
         filename = image['c'][1][0]
         raw_caption = pf.stringify(image['c'][0])
         # TODO: write a proper attribute parser
-        label = attr.strip('{}')[1:]
+        attrs = parse_attributes(attr_string)
+        label = attrs['id']
 
         self.refdict[label] = {'type': 'figure',
                                'id': self.figure_count}

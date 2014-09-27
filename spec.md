@@ -1,6 +1,6 @@
 ## Experiments with pandoc figures {#sec:expt}
 
-![a figure that can be referred to](image.png){#fig:attr}
+![a figure that can be referred to](image.png){#fig:attr .class1 key=value}
 
 Here is a reference to [this text is ignored](#fig:attr) and here is
 one to [](#fig:attr2).
