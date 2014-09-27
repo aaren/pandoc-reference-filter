@@ -65,6 +65,9 @@ constrained to ids like '#fig:somefigure' to indicate a figure.
 - [ ] allow switching off figure / section text replacement (perhaps
   using document metadata as the switch)
 
+- [ ] implement implicit internal reference link syntax for links to
+  figures, i.e. `[](#ref) == [#ref]`
+
 
 ### Contributing:
 
