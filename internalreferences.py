@@ -108,6 +108,28 @@ def isheader(key, value):
     return (key == 'Header')
 
 
+# pattern that matches [#reflink]
+imp_reflink_pattern = re.compile('(.*)\[(#.*?)\](.*)')
+
+
+def replace_implicit_reflinks(key, value, format, meta):
+    """Replace implicit reference links, i.e. [#reflink]
+    with a Link to the label. If these are not defined somewhere
+    these are usually ignored and passed through as strings.
+
+    This is to allow us to do internal referencing using
+    [#ref] syntax.
+    """
+    if key == 'Str':
+        match = imp_reflink_pattern.match(value)
+        if match:
+            # links can have text immediately adjacent
+            pre, ref, post = match.groups()
+            return [pf.Str(pre), pf.Link([], (ref, "")), pf.Str(post)]
+        else:
+            return None
+
+
 class ReferenceManager(object):
     """Internal reference manager.
 
@@ -265,7 +287,9 @@ class ReferenceManager(object):
 
     @property
     def reference_filter(self):
-        return [self.consume_references, self.convert_links]
+        return [replace_implicit_reflinks,
+                self.consume_references,
+                self.convert_links]
 
 
 def toJSONFilter(actions):
