@@ -119,6 +119,8 @@ def replace_implicit_reflinks(key, value, format, meta):
 
     This is to allow us to do internal referencing using
     [#ref] syntax.
+
+    Note that we can't have spaces in the reference link.
     """
     if key == 'Str':
         match = imp_reflink_pattern.match(value)

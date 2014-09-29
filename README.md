@@ -7,6 +7,49 @@ markdown output format can be used to convert
 markdown-with-figure-attributes into currently valid pandoc
 markdown.
 
+This allows you to write something like this:
+
+```markdown
+Look at [#fig:thing].
+
+![some caption](image.png){#fig:thing}
+```
+
+and get this markdown:
+
+```markdown
+Look at [Figure 1](#fig:thing).
+
+<div id='#fig:thing'>
+![Figure 1: some caption](image.png)
+
+</div>
+```
+
+this latex:
+
+```latex
+Look at \autoref{fig:thing}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{image.png}
+\caption{some caption}
+\label{fig:thing}
+\end{figure}
+```
+
+or this html:
+
+```html
+<p>Look at <a href="#fig:thing">Figure 1</a>.</p>
+
+<div class="figure" id="fig:thing">
+<img src="image.png" alt="some caption" />
+<p class="caption">Figure 1: some caption</p>
+</div>
+```
+
 For example input see the [spec] and for the output see [markdown],
 [html], [html5] or [latex].
 
