@@ -35,6 +35,14 @@ markdown_link = '[{text}](#{label})'
 
 
 class AttributeParser(object):
+    """Parser for pandoc block attributes.
+
+    usage:
+        attrs = '#id .class1 .class2 key=value'
+        parser = AttributeParser()
+        parser.parse(attrs)
+        >>> {'id': 'id', 'classes': ['class1', 'class2'], 'key'='value'}
+    """
     spnl = ' \n'
 
     @staticmethod
