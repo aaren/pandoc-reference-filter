@@ -340,9 +340,17 @@ def toJSONFilter(actions):
     pf.json.dump(altered, pf.sys.stdout)
 
 
+def suppress_input_cells(key, value, format, metadata):
+    """For use with notedown. Suppresses code cells that have the
+    attribute '.input'.
+    """
+    if format == 'latex' and key == 'CodeBlock' and 'input' in value[0][1]:
+        return pf.Null()
+
+
 def main():
     refmanager = ReferenceManager()
-    toJSONFilter(refmanager.reference_filter)
+    toJSONFilter(refmanager.reference_filter + [suppress_input_cells])
 
 if __name__ == '__main__':
     main()
