@@ -20,3 +20,11 @@ Here is reference to the section called [Section 1.1](#sec:expt).
 
 ![figure with no attr](image.png)
 
+Here is an equation:
+
+`\[
+2 + 2 = 5
+\label{eq:silly}
+`\]
+
+Here is a reference to #eq:silly.

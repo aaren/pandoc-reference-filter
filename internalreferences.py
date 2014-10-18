@@ -33,6 +33,9 @@ latex_link = '{pre}\\autoref{{{label}}}{post}'
 html_link = '{pre}<a href="#{label}">{text}</a>{post}'
 markdown_link = '{pre}[{text}](#{label}){post}'
 
+latex_math_link = '\\autoref{{{label}}}'
+html_math_link = 'Equation \\eqref{{{label}}}'
+
 # TODO: equation references. Pandoc does not provide a facility for
 # these, but both latex and mathjax do.
 # In latex we use \label and \ref or \eqref. We use the same in mathjax.
@@ -112,6 +115,10 @@ def isfigure(key, value):
     return (key == 'Para' and len(value) == 2 and value[0]['t'] == 'Image')
 
 
+def islabeledmath(key, value):
+    return (key == 'Math' and re.search(r'\\label{\S*}', value[1]))
+
+
 def isattrfigure(key, value):
     return (key == 'Para'
             and value[0]['t'] == 'Image'
@@ -152,6 +159,7 @@ class ReferenceManager(object):
     secdict = {}
 
     figure_count = 1
+    equation_count = 1
     refdict = {}
 
     replacements = {'figure': 'Figure {}',
@@ -189,6 +197,8 @@ class ReferenceManager(object):
             return self.figure_replacement(key, value, format, metadata)
         elif isheader(key, value) and format in self.formats:
             return self.section_replacement(key, value, format, metadata)
+        elif islabeledmath(key, value):
+            return self.math_replacement(key, value, format, metadata)
 
     def figure_replacement(self, key, value, format, metadata):
         """Replace figures with appropriate representation and
@@ -267,6 +277,14 @@ class ReferenceManager(object):
         elif format == 'latex':
             # have to do this to get rid of hyperref
             return pf.Header(level, attr, text)
+
+    def math_replacement(self, key, value, format, metadata):
+        mathtype, math = value
+        label = re.search(r'\\label{(\S*)', math)
+        self.refdict[label] = {'type': 'math',
+                               'id': self.equation_count}
+        self.equation_count += 1
+        return None
 
     def convert_links(self, key, value, format, metadata):
         """Convert all internal links into format specified in

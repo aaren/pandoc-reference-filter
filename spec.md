@@ -9,3 +9,13 @@ Here is reference to the section called #sec:expt.
 ![another figure that can be referred to](image.png){#fig:attr2}
 
 ![figure with no attr](image.png)
+
+
+Here is an equation:
+
+$$
+2 + 2 = 5
+\label{eq:silly}
+$$
+
+Here is a reference to #eq:silly.

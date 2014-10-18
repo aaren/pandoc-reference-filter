@@ -26,3 +26,12 @@ Here is reference to the section called \autoref{sec:expt}.
 \includegraphics{image.png}
 \caption{figure with no attr}
 \end{figure}
+
+Here is an equation:
+
+\[
+2 + 2 = 5
+\label{eq:silly}
+\]
+
+Here is a reference to \autoref{#eq:silly}.

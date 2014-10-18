@@ -23,6 +23,7 @@ def test_attributes():
 def call_pandoc(format):
     pandoc_cmd = ('pandoc', 'spec.md',
                   '--filter', 'internalreferences.py',
+                  '--mathjax',
                   '--to', format)
     p = subprocess.Popen(pandoc_cmd, stdout=subprocess.PIPE)
     stdout, stderr = p.communicate()
