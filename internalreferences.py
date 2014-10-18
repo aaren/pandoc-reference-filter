@@ -33,6 +33,20 @@ latex_link = '\\autoref{{{label}}}'
 html_link = '<a href="#{label}">{text}</a>'
 markdown_link = '[{text}](#{label})'
 
+# TODO: equation references. Pandoc does not provide a facility for
+# these, but both latex and mathjax do.
+# In latex we use \label and \ref or \eqref. We use the same in mathjax.
+# However, we should surround our \ref with $...$ so that it isn't
+# stripped out by pandoc (unless we --parse-raw).
+# To make references consistent we should use `#eq:blah` and convert
+# this to 'Equation $\eqref{eq:blah}$' in html and
+# '\autoref{eq:blah}' in latex
+
+# http://cdn.mathjax.org/mathjax/latest/test/sample-eqrefs.html
+# mathjax claims that you can get equation references on regular
+# display math but I'm only finding it to work on equation
+# environments.
+
 
 class AttributeParser(object):
     """Parser for pandoc block attributes.
