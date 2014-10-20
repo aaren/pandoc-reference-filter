@@ -138,10 +138,13 @@ def islabeledmath(key, value):
 imp_reflink_pattern = re.compile(r'([\s]?)(#[\w:&^]+)([\. \t\\]?)')
 
 
-def isinternallink(key, value):
+def isinternalref(key, value):
     # This can fall over if we don't create_figures from our
     # special attr images first - it can match #id in the attrs
     return key == 'Str' and imp_reflink_pattern.match(value)
+
+# define a new type for internal references [pre, label, post]
+InternalRef = pf.elt('InternalRef', 3)
 
 
 def isattr(string):
@@ -334,22 +337,29 @@ class ReferenceManager(object):
         self.equation_count += 1
         return None
 
-    def convert_links(self, key, value, format, metadata):
-        """Convert all internal links from '#blah'into format
+    def create_internal_refs(self, key, value, format, metadata):
+        """Convert #label in the text into InternalRef, but only if the
+        label is in the refdict.
+        """
+        if isinternalref(key, value):
+            pre, link, post = imp_reflink_pattern.match(value).groups()
+            label = link.lstrip('#')
+            if label in self.refdict:
+                return InternalRef(pre, label, post)
+
+    def convert_internal_refs(self, key, value, format, metadata):
+        """Convert all internal links from '#blah' into format
         specified in self.replacements.
         """
-        if isinternallink(key, value):
-            pre, link, post = imp_reflink_pattern.match(value).groups()
-            label = link[1:]  # strip leading '#'
-            try:
-                id = self.refdict[label]['id']
-                rtype = self.refdict[label]['type']
-            except KeyError:
-                return None
-        else:
+        if key != 'InternalRef':
             return None
 
-        text = self.replacements[rtype].format(id)
+        else:
+            pre, label, post = value
+
+        rtype = self.refdict[label]['type']
+        n = self.refdict[label]['id']
+        text = self.replacements[rtype].format(n)
 
         if format in ('html', 'html5'):
             return rawhtml(link_styles[format][rtype].format(text=text,
@@ -373,7 +383,8 @@ class ReferenceManager(object):
     def reference_filter(self):
         return [create_figures,
                 self.consume_references,
-                self.convert_links]
+                self.create_internal_refs,
+                self.convert_internal_refs]
 
 
 def toJSONFilter(actions):
