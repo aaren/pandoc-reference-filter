@@ -130,8 +130,11 @@ def isheader(key, value):
     return (key == 'Header')
 
 
-# pattern that matches [#reflink]
-imp_reflink_pattern = re.compile('(.*)\[(#.*?)\](.*)')
+# pattern that matches #reflink
+# only allow characters that we can have in latex labels
+# currently have to be after whitespace
+# terminated by whitespace, period or backslash
+imp_reflink_pattern = re.compile(r'([\s]?)(#[\w:&^]+)([\.\w\\]?)')
 
 
 def replace_implicit_reflinks(key, value, format, meta):
