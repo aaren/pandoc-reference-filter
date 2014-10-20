@@ -34,4 +34,4 @@ Here is an equation:
 \label{eq:silly}
 \]
 
-Here is a reference to \autoref{#eq:silly}.
+Here is a reference to \autoref{eq:silly}.

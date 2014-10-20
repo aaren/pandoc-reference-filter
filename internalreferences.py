@@ -29,26 +29,38 @@ markdown_figure = """
 </div>
 """
 
+# replacement text to use for in text internal links
+# that refer to various types of thing, in different
+# output formats
 latex_link = '{pre}\\autoref{{{label}}}{post}'
 html_link = '{pre}<a href="#{label}">{text}</a>{post}'
 markdown_link = '{pre}[{text}](#{label}){post}'
 
-latex_math_link = '\\autoref{{{label}}}'
-html_math_link = 'Equation \\eqref{{{label}}}'
+latex_math_link = '{pre}\\autoref{{{label}}}{post}'
+html_math_link = '{pre}Equation \\eqref{{{label}}}{post}'
+markdown_math_link = '{pre}Equation $\\eqref{{{label}}}${post}'
 
-# TODO: equation references. Pandoc does not provide a facility for
-# these, but both latex and mathjax do.
-# In latex we use \label and \ref or \eqref. We use the same in mathjax.
-# However, we should surround our \ref with $...$ so that it isn't
-# stripped out by pandoc (unless we --parse-raw).
-# To make references consistent we should use `#eq:blah` and convert
-# this to 'Equation $\eqref{eq:blah}$' in html and
-# '\autoref{eq:blah}' in latex
+link_styles = {
+    'latex': {'figure': latex_link,
+              'section': latex_link,
+              'math': latex_math_link},
+    'html': {'figure': html_link,
+             'section': html_link,
+             'math': html_math_link},
+    'html5': {'figure': html_link,
+              'section': html_link,
+              'math': html_math_link},
+    'markdown': {'figure': markdown_link,
+                 'section': markdown_link,
+                 'math': markdown_math_link}
+}
+
 
 # http://cdn.mathjax.org/mathjax/latest/test/sample-eqrefs.html
 # mathjax claims that you can get equation references on regular
 # display math but I'm only finding it to work on equation
 # environments.
+# No, you can, just need autoequations: 'all' rather than 'AMS'
 
 
 class AttributeParser(object):
@@ -129,7 +141,7 @@ def isattrfigure(key, value):
 # only allow characters that we can have in latex labels
 # currently have to be after whitespace
 # terminated by whitespace, period or backslash
-imp_reflink_pattern = re.compile(r'([\s]?)(#[\w:&^]+)([\.\w\\]?)')
+imp_reflink_pattern = re.compile(r'([\s]?)(#[\w:&^]+)([\. \t\\]?)')
 
 
 def isinternallink(key, value):
@@ -163,7 +175,8 @@ class ReferenceManager(object):
     refdict = {}
 
     replacements = {'figure': 'Figure {}',
-                    'section': 'Section {}'}
+                    'section': 'Section {}',
+                    'math': 'Equation {}'}
 
     formats = ('html', 'html5', 'markdown', 'latex')
 
@@ -279,16 +292,22 @@ class ReferenceManager(object):
             return pf.Header(level, attr, text)
 
     def math_replacement(self, key, value, format, metadata):
+        """Math should not need replacing as mathjax / latex will
+        take care of any references. All we do is append to the
+        refdict and increment an equation count (which nothing uses
+        yet).
+        """
         mathtype, math = value
-        label = re.search(r'\\label{(\S*)', math)
+        label, = re.search(r'\\label{([\w:&^]+)}', math).groups()
         self.refdict[label] = {'type': 'math',
                                'id': self.equation_count}
         self.equation_count += 1
         return None
 
     def convert_links(self, key, value, format, metadata):
-        """Convert all internal links into format specified in
-        self.replacements."""
+        """Convert all internal links from '#blah'into format
+        specified in self.replacements.
+        """
         if isinternallink(key, value):
             pre, link, post = imp_reflink_pattern.match(value).groups()
             label = link[1:]  # strip leading '#'
@@ -303,13 +322,20 @@ class ReferenceManager(object):
         text = self.replacements[rtype].format(id)
 
         if format in ('html', 'html5'):
-            return rawhtml(html_link.format(text=text, label=label,
-                                            pre=pre, post=post))
+            return rawhtml(link_styles[format][rtype].format(text=text,
+                                                             label=label,
+                                                             pre=pre,
+                                                             post=post))
+
         elif format == 'markdown':
-            return rawmarkdown(markdown_link.format(text=text, label=label,
-                                                    pre=pre, post=post))
+            return rawmarkdown(link_styles[format][rtype].format(text=text,
+                                                                 label=label,
+                                                                 pre=pre,
+                                                                 post=post))
         elif format == 'latex':
-            return rawlatex(latex_link.format(label=label, pre=pre, post=post))
+            return rawlatex(link_styles[format][rtype].format(label=label,
+                                                              pre=pre,
+                                                              post=post))
         else:
             return None
 
