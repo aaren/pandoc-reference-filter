@@ -29,9 +29,9 @@ markdown_figure = """
 </div>
 """
 
-latex_link = '\\autoref{{{label}}}'
-html_link = '<a href="#{label}">{text}</a>'
-markdown_link = '[{text}](#{label})'
+latex_link = '{pre}\\autoref{{{label}}}{post}'
+html_link = '{pre}<a href="#{label}">{text}</a>{post}'
+markdown_link = '{pre}[{text}](#{label}){post}'
 
 # TODO: equation references. Pandoc does not provide a facility for
 # these, but both latex and mathjax do.
@@ -118,8 +118,15 @@ def isattrfigure(key, value):
             and isattr(pf.stringify(value[1:])))
 
 
+# pattern that matches #reflink
+# only allow characters that we can have in latex labels
+# currently have to be after whitespace
+# terminated by whitespace, period or backslash
+imp_reflink_pattern = re.compile(r'([\s]?)(#[\w:&^]+)([\.\w\\]?)')
+
+
 def isinternallink(key, value):
-    return (key == 'Link' and (value[1][0]).startswith('#'))
+    return key == 'Str' and imp_reflink_pattern.match(value)
 
 
 def isattr(string):
@@ -128,33 +135,6 @@ def isattr(string):
 
 def isheader(key, value):
     return (key == 'Header')
-
-
-# pattern that matches #reflink
-# only allow characters that we can have in latex labels
-# currently have to be after whitespace
-# terminated by whitespace, period or backslash
-imp_reflink_pattern = re.compile(r'([\s]?)(#[\w:&^]+)([\.\w\\]?)')
-
-
-def replace_implicit_reflinks(key, value, format, meta):
-    """Replace implicit reference links, i.e. [#reflink]
-    with a Link to the label. If these are not defined somewhere
-    these are usually ignored and passed through as strings.
-
-    This is to allow us to do internal referencing using
-    [#ref] syntax.
-
-    Note that we can't have spaces in the reference link.
-    """
-    if key == 'Str':
-        match = imp_reflink_pattern.match(value)
-        if match:
-            # links can have text immediately adjacent
-            pre, ref, post = match.groups()
-            return [pf.Str(pre), pf.Link([], (ref, "")), pf.Str(post)]
-        else:
-            return None
 
 
 class ReferenceManager(object):
@@ -292,7 +272,8 @@ class ReferenceManager(object):
         """Convert all internal links into format specified in
         self.replacements."""
         if isinternallink(key, value):
-            label = value[1][0][1:]  # strip leading '#'
+            pre, link, post = imp_reflink_pattern.match(value).groups()
+            label = link[1:]  # strip leading '#'
             try:
                 id = self.refdict[label]['id']
                 rtype = self.refdict[label]['type']
@@ -304,18 +285,19 @@ class ReferenceManager(object):
         text = self.replacements[rtype].format(id)
 
         if format in ('html', 'html5'):
-            return rawhtml(html_link.format(text=text, label=label))
+            return rawhtml(html_link.format(text=text, label=label,
+                                            pre=pre, post=post))
         elif format == 'markdown':
-            return rawmarkdown(markdown_link.format(text=text, label=label))
+            return rawmarkdown(markdown_link.format(text=text, label=label,
+                                                    pre=pre, post=post))
         elif format == 'latex':
-            return rawlatex(latex_link.format(label=label))
+            return rawlatex(latex_link.format(label=label, pre=pre, post=post))
         else:
             return None
 
     @property
     def reference_filter(self):
-        return [replace_implicit_reflinks,
-                self.consume_references,
+        return [self.consume_references,
                 self.convert_links]
 
 
