@@ -2,32 +2,32 @@ import re
 
 import pandocfilters as pf
 
-latex_figure = """
-\\begin{{figure}}[htbp]
-\\centering
-\\includegraphics{{{filename}}}
-\\caption{{{caption}}}
-\\label{{{label}}}
-\\end{{figure}}"""
+figure_styles = {'latex': ('\n'
+                           '\\begin{{figure}}[htbp]\n'
+                           '\\centering\n'
+                           '\\includegraphics{{{filename}}}\n'
+                           '\\caption{{{caption}}}\n'
+                           '\\label{{{label}}}\n'
+                           '\\end{{figure}}\n'),
 
-html5_figure = """
-<figure id="{id}" {classes} {keys}>
-<img src="{filename}" alt="{alt}" />
-<figcaption>{caption}</figcaption>
-</figure>"""
+                 'html': ('\n'
+                           '<div class="figure" id="{id}" {classes} {keys}>\n'
+                           '<img src="{filename}" alt="{alt}" />'
+                           '<p class="caption">{caption}</p>\n'
+                           '</div>\n'),
 
-html_figure = """
-<div class="figure" id="{id}" {classes} {keys}>
-<img src="{filename}" alt="{alt}" /><p class="caption">{caption}</p>
-</div>
-"""
+                 'html5': ('\n'
+                          '<figure id="{id}" {classes} {keys}>\n'
+                          '<img src="{filename}" alt="{alt}" />\n'
+                          '<figcaption>{caption}</figcaption>\n'
+                          '</figure>'),
 
-markdown_figure = """
-<div id="{id}">
-![{caption}]({filename})
-
-</div>
-"""
+                 'markdown': ('\n'
+                              '<div id="{id}">\n'
+                              '![{caption}]({filename})\n'
+                              '\n'
+                              '</div>\n')
+                 }
 
 # replacement text to use for in text internal links
 # that refer to various types of thing, in different
@@ -271,14 +271,14 @@ class ReferenceManager(object):
         self.figure_count += 1
 
         if format == 'markdown':
-            figure = markdown_figure.format(id=id,
+            figure = figure_styles[format].format(id=id,
                                             caption=caption,
                                             filename=filename)
 
             return pf.Para([rawmarkdown(figure)])
 
         elif format == 'html':
-            figure = html_figure.format(id=id,
+            figure = figure_styles[format].format(id=id,
                                         classes=class_str,
                                         keys=key_str,
                                         filename=filename,
@@ -287,7 +287,7 @@ class ReferenceManager(object):
             return pf.Para([rawhtml(figure)])
 
         elif format == 'html5':
-            figure = html5_figure.format(id=id,
+            figure = figure_styles[format].format(id=id,
                                          classes=class_str,
                                          keys=key_str,
                                          filename=filename,
@@ -296,7 +296,7 @@ class ReferenceManager(object):
             return pf.Para([rawhtml(figure)])
 
         elif format == 'latex':
-            figure = latex_figure.format(filename=filename,
+            figure = figure_styles[format].format(filename=filename,
                                          caption=scaption,
                                          label=id)
             return pf.Para([rawlatex(figure)])
