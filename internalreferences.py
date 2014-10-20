@@ -145,6 +145,21 @@ imp_reflink_pattern = re.compile(r'([\s]?)(#[\w:&^]+)([\. \t\\]?)')
 
 
 def isinternallink(key, value):
+    # FIXME: this will break with our image attribute syntax.
+    # We have implemented attributes on images, but pandoc doesn't
+    # recognise this so they get parsed as Str. We can define an id
+    # as '#id' anywhere in the attributes, and this will currently
+    # only work if it is defined at the start (after the initial
+    # '{').
+    #
+    # We need to find a way to allow #id anywhere in the attributes.
+    # Perhaps give the image attributes an interim key?
+    # Can we see if the Str is contained within something that
+    # matches isattrfigure?
+    #
+    # Actually, we're ok as long as 'figures' get parsed out and
+    # dealt with first. This is what happens - the internallinks are
+    # converted at the end.
     return key == 'Str' and imp_reflink_pattern.match(value)
 
 
