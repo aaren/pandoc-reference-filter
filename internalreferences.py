@@ -123,18 +123,12 @@ def rawmarkdown(s):
     return pf.RawInline('markdown', s)
 
 
-def isfigure(key, value):
-    return (key == 'Para' and len(value) == 2 and value[0]['t'] == 'Image')
+def isheader(key, value):
+    return (key == 'Header')
 
 
 def islabeledmath(key, value):
     return (key == 'Math' and re.search(r'\\label{\S*}', value[1]))
-
-
-def isattrfigure(key, value):
-    return (key == 'Para'
-            and value[0]['t'] == 'Image'
-            and isattr(pf.stringify(value[1:])))
 
 
 # pattern that matches #reflink
@@ -145,21 +139,8 @@ imp_reflink_pattern = re.compile(r'([\s]?)(#[\w:&^]+)([\. \t\\]?)')
 
 
 def isinternallink(key, value):
-    # FIXME: this will break with our image attribute syntax.
-    # We have implemented attributes on images, but pandoc doesn't
-    # recognise this so they get parsed as Str. We can define an id
-    # as '#id' anywhere in the attributes, and this will currently
-    # only work if it is defined at the start (after the initial
-    # '{').
-    #
-    # We need to find a way to allow #id anywhere in the attributes.
-    # Perhaps give the image attributes an interim key?
-    # Can we see if the Str is contained within something that
-    # matches isattrfigure?
-    #
-    # Actually, we're ok as long as 'figures' get parsed out and
-    # dealt with first. This is what happens - the internallinks are
-    # converted at the end.
+    # This can fall over if we don't create_figures from our
+    # special attr images first - it can match #id in the attrs
     return key == 'Str' and imp_reflink_pattern.match(value)
 
 
@@ -167,8 +148,42 @@ def isattr(string):
     return string.startswith('{') and string.endswith('}')
 
 
-def isheader(key, value):
-    return (key == 'Header')
+def isfigure(key, value):
+    return (key == 'Para' and len(value) == 2 and value[0]['t'] == 'Image')
+
+
+def isattrfigure(key, value):
+    return (key == 'Para'
+            and value[0]['t'] == 'Image'
+            and isattr(pf.stringify(value[1:])))
+
+
+# define a new Figure type - an image with attributes
+Figure = pf.elt('Figure', 3)  # caption, target, attrs
+
+
+def isFigure(key, value):
+    return key == 'Figure'
+
+
+def create_figures(key, value, format, metadata):
+    """Convert Images with attributes to Figures.
+
+    Images are [caption, (filename, title)].
+
+    Figures are [caption, (filename, title), attrs].
+
+    This isn't a supported pandoc type, we just use it internally.
+    """
+    if isattrfigure(key, value):
+        image = value[0]
+        attr_string = pf.stringify(value[1:])
+
+        caption, target = image['c']
+        attrd = attr_parser.parse(attr_string)
+        attrs = pf.attributes(attrd)
+
+        return Figure(caption, target, attrs)
 
 
 class ReferenceManager(object):
@@ -221,7 +236,7 @@ class ReferenceManager(object):
         the document and replace them with appropriate text whilst
         appending to the internal refdict.
         """
-        if isattrfigure(key, value):
+        if isFigure(key, value):
             return self.figure_replacement(key, value, format, metadata)
         elif isheader(key, value) and format in self.formats:
             return self.section_replacement(key, value, format, metadata)
@@ -231,36 +246,36 @@ class ReferenceManager(object):
     def figure_replacement(self, key, value, format, metadata):
         """Replace figures with appropriate representation and
         append info to the refdict.
+
+        This works with Figure, which is our special type for images
+        with attributes. This allows us to set an id in the attributes.
+
+        The other way of doing it would be to pull out a '\label{(.*)}'
+        from the caption of an Image and use that to update the refdict.
         """
-        image = value[0]
-        attr_string = pf.stringify(value[1:])
-        filename = image['c'][1][0]
-        raw_caption = pf.stringify(image['c'][0])
-        attrs = attr_parser.parse(attr_string)
-
-        label = attrs['id']
-        classes = attrs['classes']
-        keys = [(k, v) for k, v in attrs.items() if k not in ('id', 'classes')]
-
-        class_str = 'class="{}"'.format(' '.join(classes)) if classes else ''
-        key_str = ' '.join('{}={}'.format(k, v) for k, v in keys)
-
-        self.refdict[label] = {'type': 'figure',
-                               'id': self.figure_count}
+        _caption, (filename, target), (id, classes, kvs) = value
+        scaption = pf.stringify(_caption)
 
         caption = 'Figure {n}: {caption}'.format(n=self.figure_count,
-                                                 caption=raw_caption)
+                                                 caption=scaption)
+
+        class_str = 'class="{}"'.format(' '.join(classes)) if classes else ''
+        key_str = ' '.join('{}={}'.format(k, v) for k, v in kvs)
+
+        self.refdict[id] = {'type': 'figure',
+                            'id': self.figure_count}
+
         self.figure_count += 1
 
         if format == 'markdown':
-            figure = markdown_figure.format(id=label,
+            figure = markdown_figure.format(id=id,
                                             caption=caption,
                                             filename=filename)
 
             return pf.Para([rawmarkdown(figure)])
 
         elif format == 'html':
-            figure = html_figure.format(id=label,
+            figure = html_figure.format(id=id,
                                         classes=class_str,
                                         keys=key_str,
                                         filename=filename,
@@ -269,7 +284,7 @@ class ReferenceManager(object):
             return pf.Para([rawhtml(figure)])
 
         elif format == 'html5':
-            figure = html5_figure.format(id=label,
+            figure = html5_figure.format(id=id,
                                          classes=class_str,
                                          keys=key_str,
                                          filename=filename,
@@ -279,8 +294,8 @@ class ReferenceManager(object):
 
         elif format == 'latex':
             figure = latex_figure.format(filename=filename,
-                                         caption=raw_caption,
-                                         label=label)
+                                         caption=scaption,
+                                         label=id)
             return pf.Para([rawlatex(figure)])
 
     def section_replacement(self, key, value, format, metadata):
@@ -356,7 +371,8 @@ class ReferenceManager(object):
 
     @property
     def reference_filter(self):
-        return [self.consume_references,
+        return [create_figures,
+                self.consume_references,
                 self.convert_links]
 
 
