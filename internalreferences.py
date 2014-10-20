@@ -7,24 +7,24 @@ figure_styles = {'latex': ('\n'
                            '\\centering\n'
                            '\\includegraphics{{{filename}}}\n'
                            '\\caption{{{caption}}}\n'
-                           '\\label{{{label}}}\n'
+                           '\\label{{{id}}}\n'
                            '\\end{{figure}}\n'),
 
                  'html': ('\n'
-                           '<div class="figure" id="{id}" {classes} {keys}>\n'
-                           '<img src="{filename}" alt="{alt}" />'
-                           '<p class="caption">{caption}</p>\n'
-                           '</div>\n'),
+                          '<div class="figure" id="{id}" {classes} {keys}>\n'
+                          '<img src="{filename}" alt="{alt}" />'
+                          '<p class="caption">{fcaption}</p>\n'
+                          '</div>\n'),
 
                  'html5': ('\n'
-                          '<figure id="{id}" {classes} {keys}>\n'
-                          '<img src="{filename}" alt="{alt}" />\n'
-                          '<figcaption>{caption}</figcaption>\n'
-                          '</figure>'),
+                           '<figure id="{id}" {classes} {keys}>\n'
+                           '<img src="{filename}" alt="{alt}" />\n'
+                           '<figcaption>{fcaption}</figcaption>\n'
+                           '</figure>'),
 
                  'markdown': ('\n'
                               '<div id="{id}">\n'
-                              '![{caption}]({filename})\n'
+                              '![{fcaption}]({filename})\n'
                               '\n'
                               '</div>\n')
                  }
@@ -109,6 +109,16 @@ class AttributeParser(object):
         return attr_dict
 
 attr_parser = AttributeParser()
+
+
+def RawInline(format, string):
+    """Overwrite pandocfilters RawInline so that html5
+    and html raw output both use the html writer.
+    """
+    if format == 'html5':
+        format = 'html'
+        # pass
+    return pf.RawInline(format, string)
 
 
 def rawlatex(s):
@@ -201,8 +211,6 @@ class ReferenceManager(object):
     the start of labels).
     """
     section_count = [1, 1, 1, 1, 1, 1]
-    secdict = {}
-
     figure_count = 1
     equation_count = 1
     refdict = {}
@@ -234,10 +242,10 @@ class ReferenceManager(object):
         """
         return '.'.join(str(i) for i in self.section_count[:header_level])
 
-    def consume_references(self, key, value, format, metadata):
-        """Find all figures and sections that can be referenced in
-        the document and replace them with appropriate text whilst
-        appending to the internal refdict.
+    def consume_and_replace_references(self, key, value, format, metadata):
+        """Find all figures, sections and equations that can be
+        referenced in the document and replace them with appropriate
+        text whilst appending to the internal refdict.
         """
         if isFigure(key, value):
             return self.figure_replacement(key, value, format, metadata)
@@ -257,10 +265,10 @@ class ReferenceManager(object):
         from the caption of an Image and use that to update the refdict.
         """
         _caption, (filename, target), (id, classes, kvs) = value
-        scaption = pf.stringify(_caption)
+        caption = pf.stringify(_caption)
 
-        caption = 'Figure {n}: {caption}'.format(n=self.figure_count,
-                                                 caption=scaption)
+        fcaption = 'Figure {n}: {caption}'.format(n=self.figure_count,
+                                                  caption=caption)
 
         class_str = 'class="{}"'.format(' '.join(classes)) if classes else ''
         key_str = ' '.join('{}={}'.format(k, v) for k, v in kvs)
@@ -270,36 +278,15 @@ class ReferenceManager(object):
 
         self.figure_count += 1
 
-        if format == 'markdown':
+        if format in self.formats:
             figure = figure_styles[format].format(id=id,
-                                            caption=caption,
-                                            filename=filename)
-
-            return pf.Para([rawmarkdown(figure)])
-
-        elif format == 'html':
-            figure = figure_styles[format].format(id=id,
-                                        classes=class_str,
-                                        keys=key_str,
-                                        filename=filename,
-                                        alt=caption,
-                                        caption=caption)
-            return pf.Para([rawhtml(figure)])
-
-        elif format == 'html5':
-            figure = figure_styles[format].format(id=id,
-                                         classes=class_str,
-                                         keys=key_str,
-                                         filename=filename,
-                                         alt=caption,
-                                         caption=caption)
-            return pf.Para([rawhtml(figure)])
-
-        elif format == 'latex':
-            figure = figure_styles[format].format(filename=filename,
-                                         caption=scaption,
-                                         label=id)
-            return pf.Para([rawlatex(figure)])
+                                                  classes=class_str,
+                                                  keys=key_str,
+                                                  filename=filename,
+                                                  alt=fcaption,
+                                                  fcaption=fcaption,
+                                                  caption=caption)
+            return pf.Para([RawInline(format, figure)])
 
     def section_replacement(self, key, value, format, metadata):
         """Replace sections with appropriate representation and
@@ -312,7 +299,7 @@ class ReferenceManager(object):
 
         label = attr[0]
         self.refdict[label] = {'type': 'section',
-                                'id': secn}
+                               'id': secn}
 
         pretext = '{}:'.format(secn)
         pretext = [pf.Str(pretext), pf.Space()]
@@ -361,28 +348,17 @@ class ReferenceManager(object):
         n = self.refdict[label]['id']
         text = self.replacements[rtype].format(n)
 
-        if format in ('html', 'html5'):
-            return rawhtml(link_styles[format][rtype].format(text=text,
-                                                             label=label,
-                                                             pre=pre,
-                                                             post=post))
-
-        elif format == 'markdown':
-            return rawmarkdown(link_styles[format][rtype].format(text=text,
-                                                                 label=label,
-                                                                 pre=pre,
-                                                                 post=post))
-        elif format == 'latex':
-            return rawlatex(link_styles[format][rtype].format(label=label,
-                                                              pre=pre,
-                                                              post=post))
-        else:
-            return None
+        if format in self.formats or True:
+            link = link_styles[format][rtype].format(text=text,
+                                                     label=label,
+                                                     pre=pre,
+                                                     post=post)
+            return RawInline(format, link)
 
     @property
     def reference_filter(self):
         return [create_figures,
-                self.consume_references,
+                self.consume_and_replace_references,
                 self.create_internal_refs,
                 self.convert_internal_refs]
 
