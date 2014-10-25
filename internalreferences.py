@@ -85,10 +85,15 @@ def islabeledmath(key, value):
 
 # pattern that matches #reflink
 # only allow characters that we can have in latex labels
+# https://tex.stackexchange.com/questions/18311/valid-label-names
 # currently have to be after whitespace
 # terminated by a disallowed latex character or a pipe. Use a pipe
 # if you want to follow the reflink with a ':', i.e. #reflink|:
 imp_reflink_pattern = re.compile(r'([\s]?)(#[\w:&^]+)\|?(.*)')
+
+# https://tex.stackexchange.com/questions/15728/multiple-references-with-autoref
+# https://github.com/mathjax/MathJax/issues/71
+# http://docs.mathjax.org/en/latest/tex.html#automatic-equation-numbering
 
 
 def isinternalref(key, value):
@@ -283,6 +288,8 @@ class ReferenceManager(object):
         take care of any references. All we do is append to the
         refdict and increment an equation count (which nothing uses
         yet).
+
+        http://meta.math.stackexchange.com/questions/3764/equation-and-equation-is-the-same-for-me
         """
         self.equation_count += 1
         mathtype, math = value
