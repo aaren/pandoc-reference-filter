@@ -29,3 +29,12 @@ $$
 
 Here is a reference to Equation $\eqref{eq:silly}$.
 
+Unnumbered Section {#unnumbered-section .unnumbered}
+------------------
+
+
+<div id="fig:nonum">
+![no numbering here](image.png)
+
+</div>
+

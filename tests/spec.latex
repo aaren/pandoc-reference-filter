@@ -35,3 +35,15 @@ Here is an equation:
 \]
 
 Here is a reference to \autoref{eq:silly}.
+
+\subsection*{Unnumbered Section}\label{unnumbered-section}
+\addcontentsline{toc}{subsection}{Unnumbered Section}
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{image.png}
+\caption*{no numbering here}
+\label{fig:nonum}
+\end{figure}
+

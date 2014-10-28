@@ -6,7 +6,7 @@ figure_styles = {'latex': ('\n'
                            '\\begin{{figure}}[htbp]\n'
                            '\\centering\n'
                            '\\includegraphics{{{filename}}}\n'
-                           '\\caption{{{caption}}}\n'
+                           '\\caption{star}{{{caption}}}\n'
                            '\\label{{{id}}}\n'
                            '\\end{{figure}}\n'),
 
@@ -267,8 +267,13 @@ class ReferenceManager(object):
         _caption, (filename, target), (id, classes, kvs) = value
         caption = pf.stringify(_caption)
 
-        fcaption = 'Figure {n}: {caption}'.format(n=self.figure_count,
-                                                  caption=caption)
+        if 'unnumbered' in classes:
+            fcaption = caption
+            star = '*'
+        else:
+            fcaption = 'Figure {n}: {caption}'.format(n=self.figure_count,
+                                                      caption=caption)
+            star = ''
 
         class_str = 'class="{}"'.format(' '.join(classes)) if classes else ''
         key_str = ' '.join('{}={}'.format(k, v) for k, v in kvs)
@@ -285,7 +290,8 @@ class ReferenceManager(object):
                                                   filename=filename,
                                                   alt=fcaption,
                                                   fcaption=fcaption,
-                                                  caption=caption)
+                                                  caption=caption,
+                                                  star=star)
             return pf.Para([RawInline(format, figure)])
 
     def section_replacement(self, key, value, format, metadata):
@@ -297,12 +303,16 @@ class ReferenceManager(object):
         secn = self.format_section_count(level)
         self.increment_section_count(level)
 
-        label = attr[0]
+        label, classes, kvs = attr
         self.refdict[label] = {'type': 'section',
                                'id': secn}
 
-        pretext = '{}:'.format(secn)
-        pretext = [pf.Str(pretext), pf.Space()]
+        if 'unnumbered' in classes:
+            pretext = ''
+        else:
+            pretext = '{}: '.format(secn)
+
+        pretext = [pf.Str(pretext)]
 
         if format in ('html', 'html5', 'markdown'):
             return pf.Header(level, attr, pretext + text)

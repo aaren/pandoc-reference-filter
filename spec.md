@@ -19,3 +19,7 @@ $$
 $$
 
 Here is a reference to #eq:silly.
+
+## Unnumbered Section {-}
+
+![no numbering here](image.png){#fig:nonum -}
