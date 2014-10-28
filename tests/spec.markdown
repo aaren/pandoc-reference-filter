@@ -1,4 +1,4 @@
-1.1: Experiments with pandoc figures {#sec:expt .class1 .class2 key="value"}
+0.1: Experiments with pandoc figures {#sec:expt .class1 .class2 key="value"}
 ------------------------------------
 
 
@@ -10,7 +10,7 @@
 Here is a reference to [Figure 1](#fig:attr) and here is one to
 [Figure 2](#fig:attr2).
 
-Here is reference to the section called [Section 1.1](#sec:expt).
+Here is reference to the section called [Section 0.1](#sec:expt).
 
 
 <div id="fig:attr2">

@@ -210,9 +210,9 @@ class ReferenceManager(object):
     text of any given internal reference (no need for e.g. 'fig:' at
     the start of labels).
     """
-    section_count = [1, 1, 1, 1, 1, 1]
-    figure_count = 1
-    equation_count = 1
+    section_count = [0, 0, 0, 0, 0, 0]
+    figure_count = 0
+    equation_count = 0
     refdict = {}
 
     replacements = {'figure': 'Figure {}',
@@ -268,20 +268,18 @@ class ReferenceManager(object):
         caption = pf.stringify(_caption)
 
         if 'unnumbered' in classes:
-            fcaption = caption
             star = '*'
+            fcaption = caption
         else:
+            self.figure_count += 1
+            star = ''
             fcaption = 'Figure {n}: {caption}'.format(n=self.figure_count,
                                                       caption=caption)
-            star = ''
+            self.refdict[id] = {'type': 'figure',
+                                'id': self.figure_count}
 
         class_str = 'class="{}"'.format(' '.join(classes)) if classes else ''
         key_str = ' '.join('{}={}'.format(k, v) for k, v in kvs)
-
-        self.refdict[id] = {'type': 'figure',
-                            'id': self.figure_count}
-
-        self.figure_count += 1
 
         if format in self.formats:
             figure = figure_styles[format].format(id=id,
@@ -299,17 +297,15 @@ class ReferenceManager(object):
         append info to the refdict.
         """
         level, attr, text = value
-
-        secn = self.format_section_count(level)
-        self.increment_section_count(level)
-
         label, classes, kvs = attr
-        self.refdict[label] = {'type': 'section',
-                               'id': secn}
 
         if 'unnumbered' in classes:
             pretext = ''
         else:
+            self.increment_section_count(level)
+            secn = self.format_section_count(level)
+            self.refdict[label] = {'type': 'section',
+                                   'id': secn}
             pretext = '{}: '.format(secn)
 
         pretext = [pf.Str(pretext)]
@@ -327,11 +323,11 @@ class ReferenceManager(object):
         refdict and increment an equation count (which nothing uses
         yet).
         """
+        self.equation_count += 1
         mathtype, math = value
         label, = re.search(r'\\label{([\w:&^]+)}', math).groups()
         self.refdict[label] = {'type': 'math',
                                'id': self.equation_count}
-        self.equation_count += 1
         return None
 
     def create_internal_refs(self, key, value, format, metadata):
