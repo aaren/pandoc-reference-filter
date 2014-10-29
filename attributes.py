@@ -22,6 +22,8 @@ class PandocAttributes(object):
             id, classes, kvs = self.parse_markdown(attr)
         elif format == 'html':
             id, classes, kvs = self.parse_html(attr)
+        elif format == 'dict':
+            id, classes, kvs = self.parse_dict(attr)
         else:
             raise UserWarning('invalid format')
 
