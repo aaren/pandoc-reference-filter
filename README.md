@@ -20,7 +20,7 @@ and get this markdown:
 ```markdown
 Look at [Figure 1](#fig:thing).
 
-<div id='#fig:thing'>
+<div id='#fig:thing' class='figure'>
 ![Figure 1: some caption](image.png)
 
 </div>
