@@ -6,18 +6,21 @@ import internalreferences
 
 
 def test_attributes():
-    attr_string = r"""{#identify .class1 .class2
+    attr_markdown = r"""{#identify .class1 .class2
     key1=blah key2="o'brien = 1" -}"""
-    ref_dict = {'id': 'identify',
+    attr_dict = {'id': 'identify',
                 'classes': ['class1', 'class2', 'unnumbered'],
                 'key1': 'blah',
                 'key2': '"o\'brien = 1"'
                 }
+    attr_html = '''id="identify" class="class1 class2 unnumbered" key1=blah key2="o'brien = 1"'''
 
-    attr_dict = internalreferences.attr_parser.parse(attr_string)
-    print ref_dict
+    attr = internalreferences.PandocAttributes(attr_markdown, 'markdown')
+
     print attr_dict
-    nt.assert_dict_equal(ref_dict, attr_dict)
+    print attr.to_dict()
+    nt.assert_dict_equal(attr_dict, attr.to_dict())
+    nt.assert_equal(attr_html, attr.to_html())
 
 
 def call_pandoc(format):

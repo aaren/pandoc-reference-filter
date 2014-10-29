@@ -63,7 +63,7 @@ link_styles = {
 # No, you can, just need autoequations: 'all' rather than 'AMS'
 
 
-class AttributeParser(object):
+class PandocAttributes(object):
     """Parser for pandoc block attributes.
 
     usage:
@@ -73,53 +73,95 @@ class AttributeParser(object):
         >>> {'id': 'id', 'classes': ['class1', 'class2'], 'key'='value'}
     """
     spnl = ' \n'
+    split_regex = r'''((?:[^{separator}"']|"[^"]*"|'[^']*')+)'''.format
 
-    @staticmethod
-    def isid(string):
-        return string.startswith('#')
+    def __init__(self, attr, format='pandoc'):
+        if format == 'pandoc':
+            id, classes, kvs = attr
+        elif format == 'markdown':
+            id, classes, kvs = self.parse_markdown(attr)
+        elif format == 'html':
+            id, classes, kvs = self.parse_html(attr)
+        else:
+            raise UserWarning('invalid format')
 
-    @staticmethod
-    def isclass(string):
-        return string.startswith('.')
-
-    @staticmethod
-    def iskv(string):
-        return ('=' in string)
-
-    @staticmethod
-    def isspecial(string):
-        return '-' == string
+        self.id = id
+        self.classes = classes
+        self.kvs = kvs
 
     @classmethod
-    def parse(self, attr_string):
+    def parse_markdown(self, attr_string):
+        """Read markdown to pandoc attributes."""
         attr_string = attr_string.strip('{}')
-        split_regex = r'''((?:[^{separator}"']|"[^"]*"|'[^']*')+)'''.format
-        splitter = re.compile(split_regex(separator=self.spnl))
+        splitter = re.compile(self.split_regex(separator=self.spnl))
         attrs = splitter.split(attr_string)[1::2]
 
-        id = [a[1:] for a in attrs if self.isid(a)]
-        classes = [a[1:] for a in attrs if self.isclass(a)]
-        kvs = [a.split('=', 1) for a in attrs if self.iskv(a)]
-        special = ['unnumbered' for a in attrs if self.isspecial(a)]
+        id = [a[1:] for a in attrs if a.startswith('#')][0] or ''
+        classes = [a[1:] for a in attrs if a.startswith('.')]
+        kvs = [a.split('=', 1) for a in attrs if '=' in a]
+        special = ['unnumbered' for a in attrs if a == '-']
+        classes.extend(special)
 
-        attr_dict = {k: v for k, v in kvs}
-        attr_dict['id'] = id[0] if id else ""
-        attr_dict['classes'] = classes + special
+        return id, classes, kvs
 
-        return attr_dict
+    def parse_html(self, attr_string):
+        """Read a html string to pandoc attributes."""
+        splitter = re.compile(self.split_regex(separator=self.spnl))
+        attrs = splitter.split(attr_string)[1::2]
 
+        idre = re.compile(r'''id=["']?([\w ]*)['"]?''')
+        clsre = re.compile(r'''class=["']?([\w ]*)['"]?''')
 
-attr_parser = AttributeParser()
+        id_matches = [idre.search(a) for a in attrs]
+        cls_matches = [clsre.search(a) for a in attrs]
 
-def to_html_attributes(attr):
-    """Take a pandoc attr list and convert to
-    html attributes.
-    """
-    id, classes, kvs = attr
-    id_str = 'id="{}"'.format(id) if id else ''
-    class_str = 'class="{}"'.format(' '.join(classes)) if classes else ''
-    key_str = ' '.join('{}={}'.format(k, v) for k, v in kvs)
-    return ' '.join((id_str, class_str, key_str)).strip()
+        id = [m.groups()[0] for m in id_matches if m][0]
+        classes = [m.groups()[0] for m in cls_matches if m][0].split()
+
+        kvs = [a.split('=', 1) for a in attrs if '=' in a]
+        kvs = [(k, v) for k, v in kvs if k not in ('id', 'class')]
+
+        special = ['unnumbered' for a in attrs if '-' in a]
+        classes.extend(special)
+
+        return id, classes, kvs
+
+    @classmethod
+    def parse_dict(self, attrd):
+        """Read a dict to pandoc attributes."""
+        return pf.attributes(attrd)
+
+    def to_markdown(self):
+        """Returns attributes formatted as markdown."""
+        attrlist = []
+
+        if self.id:
+            attrlist.append('#' + self.id)
+
+        for cls in self.classes:
+            attrlist.append('.' + cls)
+
+        for k, v in self.kvs:
+            attrlist.append(k + '=' + v)
+
+        return '{' + ' '.join(attrlist) + '}'
+
+    def to_html(self):
+        """Returns attributes formatted as html."""
+        id, classes, kvs = self.id, self.classes, self.kvs
+        id_str = 'id="{}"'.format(id) if id else ''
+        class_str = 'class="{}"'.format(' '.join(classes)) if classes else ''
+        key_str = ' '.join('{}={}'.format(k, v) for k, v in kvs)
+        return ' '.join((id_str, class_str, key_str)).strip()
+
+    def to_dict(self):
+        """Returns attributes formatted as a dictionary."""
+        d = {'id': self.id, 'classes': self.classes}
+        d.update(self.kvs)
+        return d
+
+    def to_pandoc(self):
+        return [self.id, self.classes, self.kvs]
 
 
 def RawInline(format, string):
@@ -206,11 +248,9 @@ def create_figures(key, value, format, metadata):
     """
     if isattrfigure(key, value):
         image = value[0]
-        attr_string = pf.stringify(value[1:])
-        attrd = attr_parser.parse(attr_string)
-        attr = pf.attributes(attrd)
+        attr = PandocAttributes(pf.stringify(value[1:]), 'markdown')
         caption, target = image['c']
-        return Figure(caption, target, attr)
+        return Figure(caption, target, attr.to_pandoc())
 
     elif isdivfigure(key, value):
         # use the first image inside
@@ -305,7 +345,9 @@ class ReferenceManager(object):
 
         if 'figure' not in classes:
             classes.insert(0, 'figure')
-        attrs = to_html_attributes((id, classes, kvs))
+
+        attr = PandocAttributes((id, classes, kvs))
+        attrs = attr.to_html()
 
         if format in self.formats:
             figure = figure_styles[format].format(attrs=attrs,
