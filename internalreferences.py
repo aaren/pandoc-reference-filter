@@ -11,19 +11,19 @@ figure_styles = {'latex': ('\n'
                            '\\end{{figure}}\n'),
 
                  'html': ('\n'
-                          '<div class="figure" id="{id}" {classes} {keys}>\n'
+                          '<div {attrs}>\n'
                           '<img src="{filename}" alt="{alt}" />'
                           '<p class="caption">{fcaption}</p>\n'
                           '</div>\n'),
 
                  'html5': ('\n'
-                           '<figure id="{id}" {classes} {keys}>\n'
+                           '<figure {attrs}>\n'
                            '<img src="{filename}" alt="{alt}" />\n'
                            '<figcaption>{fcaption}</figcaption>\n'
                            '</figure>'),
 
                  'markdown': ('\n'
-                              '<div id="{id}">\n'
+                              '<div {attrs}>\n'
                               '![{fcaption}]({filename})\n'
                               '\n'
                               '</div>\n')
@@ -108,7 +108,18 @@ class AttributeParser(object):
 
         return attr_dict
 
+
 attr_parser = AttributeParser()
+
+def to_html_attributes(attr):
+    """Take a pandoc attr list and convert to
+    html attributes.
+    """
+    id, classes, kvs = attr
+    id_str = 'id="{}"'.format(id) if id else ''
+    class_str = 'class="{}"'.format(' '.join(classes)) if classes else ''
+    key_str = ' '.join('{}={}'.format(k, v) for k, v in kvs)
+    return ' '.join((id_str, class_str, key_str)).strip()
 
 
 def RawInline(format, string):
@@ -171,6 +182,11 @@ def isattrfigure(key, value):
             and isattr(pf.stringify(value[1:])))
 
 
+def isdivfigure(key, value):
+    """Matches images contained in a Div with 'figure' as a class."""
+    return (key == 'Div' and 'figure' in value[0][1])
+
+
 # define a new Figure type - an image with attributes
 Figure = pf.elt('Figure', 3)  # caption, target, attrs
 
@@ -191,12 +207,21 @@ def create_figures(key, value, format, metadata):
     if isattrfigure(key, value):
         image = value[0]
         attr_string = pf.stringify(value[1:])
-
-        caption, target = image['c']
         attrd = attr_parser.parse(attr_string)
-        attrs = pf.attributes(attrd)
+        attr = pf.attributes(attrd)
+        caption, target = image['c']
+        return Figure(caption, target, attr)
 
-        return Figure(caption, target, attrs)
+    elif isdivfigure(key, value):
+        # use the first image inside
+        attr, blocks = value
+        images = [b['c'][0] for b in blocks if b['c'][0]['t'] == 'Image']
+        image = images[0]
+        caption, target = image['c']
+        return Figure(caption, target, attr)
+
+    else:
+        return None
 
 
 class ReferenceManager(object):
@@ -278,13 +303,13 @@ class ReferenceManager(object):
             self.refdict[id] = {'type': 'figure',
                                 'id': self.figure_count}
 
-        class_str = 'class="{}"'.format(' '.join(classes)) if classes else ''
-        key_str = ' '.join('{}={}'.format(k, v) for k, v in kvs)
+        if 'figure' not in classes:
+            classes.insert(0, 'figure')
+        attrs = to_html_attributes((id, classes, kvs))
 
         if format in self.formats:
-            figure = figure_styles[format].format(id=id,
-                                                  classes=class_str,
-                                                  keys=key_str,
+            figure = figure_styles[format].format(attrs=attrs,
+                                                  id=id,
                                                   filename=filename,
                                                   alt=fcaption,
                                                   fcaption=fcaption,

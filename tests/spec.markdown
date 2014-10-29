@@ -2,7 +2,7 @@
 ------------------------------------
 
 
-<div id="fig:attr">
+<div id="fig:attr" class="figure class1 class2" key=value>
 ![Figure 1: a figure that can be referred to](image.png)
 
 </div>
@@ -13,7 +13,7 @@ Here is a reference to [Figure 1](#fig:attr) and here is one to
 Here is reference to the section called [Section 0.1](#sec:expt).
 
 
-<div id="fig:attr2">
+<div id="fig:attr2" class="figure">
 ![Figure 2: another figure that can be referred to](image.png)
 
 </div>
@@ -33,7 +33,7 @@ Unnumbered Section {#unnumbered-section .unnumbered}
 ------------------
 
 
-<div id="fig:nonum">
+<div id="fig:nonum" class="figure unnumbered">
 ![no numbering here](image.png)
 
 </div>
