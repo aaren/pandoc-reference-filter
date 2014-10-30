@@ -227,8 +227,12 @@ class ReferenceManager(object):
         else:
             self.figure_count += 1
             star = ''
-            fcaption = 'Figure {n}: {caption}'.format(n=self.figure_count,
-                                                      caption=caption)
+            if caption:
+                fcaption = 'Figure {n}: {caption}'.format(n=self.figure_count,
+                                                          caption=caption)
+            else:
+                fcaption = 'Figure {n}'.format(n=self.figure_count)
+
             self.refdict[id] = {'type': 'figure',
                                 'id': self.figure_count}
 
