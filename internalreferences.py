@@ -72,20 +72,7 @@ def RawInline(format, string):
     """
     if format == 'html5':
         format = 'html'
-        # pass
     return pf.RawInline(format, string)
-
-
-def rawlatex(s):
-    return pf.RawInline('latex', s)
-
-
-def rawhtml(s):
-    return pf.RawInline('html', s)
-
-
-def rawmarkdown(s):
-    return pf.RawInline('markdown', s)
 
 
 def isheader(key, value):
@@ -376,17 +363,10 @@ def toJSONFilter(actions):
     pf.json.dump(altered, pf.sys.stdout)
 
 
-def suppress_input_cells(key, value, format, metadata):
-    """For use with notedown. Suppresses code cells that have the
-    attribute '.input'.
-    """
-    if format == 'latex' and key == 'CodeBlock' and 'input' in value[0][1]:
-        return pf.Null()
-
-
 def main():
     refmanager = ReferenceManager()
-    toJSONFilter(refmanager.reference_filter + [suppress_input_cells])
+    toJSONFilter(refmanager.reference_filter)
+
 
 if __name__ == '__main__':
     main()
