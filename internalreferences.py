@@ -89,7 +89,8 @@ def islabeledmath(key, value):
 # currently have to be after whitespace
 # terminated by a disallowed latex character or a pipe. Use a pipe
 # if you want to follow the reflink with a ':', i.e. #reflink|:
-imp_reflink_pattern = re.compile(r'([\s]?)(#[\w:&^]+)\|?(.*)')
+# Multiple references are possible - #one#two#three
+imp_reflink_pattern = re.compile(r'([\s]?)#([\w:&^#]+)\|?(.*)')
 
 # https://tex.stackexchange.com/questions/15728/multiple-references-with-autoref
 # https://github.com/mathjax/MathJax/issues/71
@@ -103,6 +104,8 @@ def isinternalref(key, value):
 
 # define a new type for internal references [pre, label, post]
 InternalRef = pf.elt('InternalRef', 3)
+# and multiple references [pre, [label], post]
+MultiInternalRef = pf.elt('MultiInternalRef', 3)
 
 
 def isattr(string):
@@ -304,9 +307,18 @@ class ReferenceManager(object):
         """
         if isinternalref(key, value):
             pre, link, post = imp_reflink_pattern.match(value).groups()
-            label = link.lstrip('#')
-            if label in self.refdict:
-                return InternalRef(pre, label, post)
+            labels = link.split('#')
+
+            # filter out labels not in refdict
+            labels = [label for label in labels if label in self.refdict]
+
+            if len(labels) == 0:
+                return None
+            elif len(labels) == 1:
+                return InternalRef(pre, labels[0], post)
+            elif len(labels) > 1:
+                return MultiInternalRef(pre, labels, post)
+
 
     def convert_internal_refs(self, key, value, format, metadata):
         """Convert all internal links from '#blah' into format
