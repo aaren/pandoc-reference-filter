@@ -86,8 +86,9 @@ def islabeledmath(key, value):
 # pattern that matches #reflink
 # only allow characters that we can have in latex labels
 # currently have to be after whitespace
-# terminated by whitespace, period or backslash
-imp_reflink_pattern = re.compile(r'([\s]?)(#[\w:&^]+)([\. \t\\]?)')
+# terminated by a disallowed latex character or a pipe. Use a pipe
+# if you want to follow the reflink with a ':', i.e. #reflink|:
+imp_reflink_pattern = re.compile(r'([\s]?)(#[\w:&^]+)\|?(.*)')
 
 
 def isinternalref(key, value):

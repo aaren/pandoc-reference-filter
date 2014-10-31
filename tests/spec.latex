@@ -27,14 +27,12 @@ Here is reference to the section called \autoref{sec:expt}.
 \caption{figure with no attr}
 \end{figure}
 
-Here is an equation:
+Here is \autoref{eq:silly}:
 
 \[
 2 + 2 = 5
 \label{eq:silly}
 \]
-
-Here is a reference to \autoref{eq:silly}.
 
 \subsection*{Unnumbered Section}\label{unnumbered-section}
 \addcontentsline{toc}{subsection}{Unnumbered Section}

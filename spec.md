@@ -13,14 +13,12 @@ Here is reference to the section called #sec:expt.
 ![figure with no attr](image.png)
 
 
-Here is an equation:
+Here is #eq:silly|:
 
 $$
 2 + 2 = 5
 \label{eq:silly}
 $$
-
-Here is a reference to #eq:silly.
 
 ## Unnumbered Section {-}
 

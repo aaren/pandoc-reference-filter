@@ -20,14 +20,12 @@ Here is reference to the section called [Section 0.1](#sec:expt).
 
 ![figure with no attr](image.png)
 
-Here is an equation:
+Here is Equation $\eqref{eq:silly}$:
 
 $$
 2 + 2 = 5
 \label{eq:silly}
 $$
-
-Here is a reference to Equation $\eqref{eq:silly}$.
 
 Unnumbered Section {#unnumbered-section .unnumbered}
 ------------------

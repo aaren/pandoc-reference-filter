@@ -14,12 +14,11 @@
 <figure>
 <img src="image.png" alt="figure with no attr" /><figcaption>figure with no attr</figcaption>
 </figure>
-<p>Here is an equation:</p>
+<p>Here is Equation \eqref{eq:silly}:</p>
 <p><span class="math">\[
 2 + 2 = 5
 \label{eq:silly}
 \]</span></p>
-<p>Here is a reference to Equation \eqref{eq:silly}.</p>
 <h2 id="unnumbered-section" class="unnumbered">Unnumbered Section</h2>
 <p>
 <figure id="fig:nonum" class="figure unnumbered">
