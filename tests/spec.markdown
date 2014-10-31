@@ -36,3 +36,12 @@ Unnumbered Section {#unnumbered-section .unnumbered}
 
 </div>
 
+Multiple references {#multiple-references .unnumbered}
+-------------------
+
+We can refer to multiple things of the same type:
+Figures [1](#fig:attr) and [2](#fig:attr2)
+
+Or to multiple things of mixed type:
+Section [0.1](#sec:expt), Equation [1](#eq:silly) and Figures [1](#fig:attr) and [2](#fig:attr2)
+

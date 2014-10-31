@@ -45,3 +45,11 @@ Here is \autoref{eq:silly}:
 \label{fig:nonum}
 \end{figure}
 
+\subsection*{Multiple references}\label{multiple-references}
+\addcontentsline{toc}{subsection}{Multiple references}
+
+We can refer to multiple things of the same type:
+\cref{fig:attr,fig:attr2}
+
+Or to multiple things of mixed type:
+\cref{fig:attr,fig:attr2,sec:expt,eq:silly}

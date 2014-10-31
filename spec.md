@@ -23,3 +23,10 @@ $$
 ## Unnumbered Section {-}
 
 ![no numbering here](image.png){#fig:nonum -}
+
+
+## Multiple references {-}
+
+We can refer to multiple things of the same type: #fig:attr#fig:attr2
+
+Or to multiple things of mixed type: #fig:attr#fig:attr2#sec:expt#eq:silly

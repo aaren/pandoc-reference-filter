@@ -1,4 +1,5 @@
 import re
+from collections import OrderedDict
 
 import pandocfilters as pf
 
@@ -42,6 +43,8 @@ markdown_link = '{pre}[{text}](#{label}){post}'
 latex_math_link = '{pre}\\autoref{{{label}}}{post}'
 html_math_link = '{pre}Equation \\eqref{{{label}}}{post}'
 markdown_math_link = '{pre}Equation $\\eqref{{{label}}}${post}'
+
+latex_multi_link = '\\cref{{{labels}}}{post}'
 
 link_styles = {
     'latex': {'figure': latex_link,
@@ -106,6 +109,41 @@ def isinternalref(key, value):
 InternalRef = pf.elt('InternalRef', 3)
 # and multiple references [pre, [label], post]
 MultiInternalRef = pf.elt('MultiInternalRef', 3)
+
+def create_pandoc_multilink(strings, refs):
+    inlines = [[pf.Str(str(s))] for s in strings]
+    targets = [(r, "") for r in refs]
+    links = [pf.Link(inline, target)
+             for inline, target in zip(inlines, targets)]
+
+    return join_items(links)
+
+
+def join_items(items, method='append'):
+    """Join the list of items together in the format
+
+    'item[0]' if len(items) == 1
+    'item[0] and item[1]' if len(items) == 2
+    'item[0], item[1] and item[2]' if len(items) == 3
+
+    and so on.
+    """
+    out = []
+    join_to_out = getattr(out, method)
+
+    join_to_out(items[0])
+
+    if len(items) == 1:
+        return out
+
+    for item in items[1: -1]:
+        out.append(pf.Str(', '))
+        join_to_out(item)
+
+    out.append(pf.Str(' and '))
+    join_to_out(items[-1])
+
+    return out
 
 
 def isattr(string):
@@ -182,6 +220,10 @@ class ReferenceManager(object):
                     'section': 'Section {}',
                     'math': 'Equation {}'}
 
+    multi_replacements = {'figure': 'Figures ',
+                          'section': 'Sections ',
+                          'math': 'Equations '}
+
     formats = ('html', 'html5', 'markdown', 'latex')
 
     def increment_section_count(self, header_level):
@@ -243,7 +285,8 @@ class ReferenceManager(object):
                 fcaption = 'Figure {n}'.format(n=self.figure_count)
 
             self.refdict[id] = {'type': 'figure',
-                                'id': self.figure_count}
+                                'id': self.figure_count,
+                                'label': id}
 
         if 'figure' not in classes:
             classes.insert(0, 'figure')
@@ -274,7 +317,8 @@ class ReferenceManager(object):
             self.increment_section_count(level)
             secn = self.format_section_count(level)
             self.refdict[label] = {'type': 'section',
-                                   'id': secn}
+                                   'id': secn,
+                                   'label': label}
             pretext = '{}: '.format(secn)
 
         pretext = [pf.Str(pretext)]
@@ -298,7 +342,8 @@ class ReferenceManager(object):
         mathtype, math = value
         label, = re.search(r'\\label{([\w:&^]+)}', math).groups()
         self.refdict[label] = {'type': 'math',
-                               'id': self.equation_count}
+                               'id': self.equation_count,
+                               'label': label}
         return None
 
     def create_internal_refs(self, key, value, format, metadata):
@@ -319,13 +364,15 @@ class ReferenceManager(object):
             elif len(labels) > 1:
                 return MultiInternalRef(pre, labels, post)
 
-
     def convert_internal_refs(self, key, value, format, metadata):
         """Convert all internal links from '#blah' into format
         specified in self.replacements.
         """
-        if key != 'InternalRef':
+        if key not in ('InternalRef' 'MultiInternalRef'):
             return None
+
+        elif key == 'MultiInternalRef':
+            return self.convert_multiref(key, value, format, metadata)
 
         else:
             pre, label, post = value
@@ -340,6 +387,42 @@ class ReferenceManager(object):
                                                      pre=pre,
                                                      post=post)
             return RawInline(format, link)
+
+    def convert_multiref(self, key, value, format, metadata):
+        """Convert all internal links from '#blah' into format
+        specified in self.replacements.
+        """
+        if key != 'MultiInternalRef':
+            return
+
+        pre, labels, post = value
+
+        if format == 'latex':
+            link = latex_multi_link.format(pre=pre,
+                                           post=post,
+                                           labels=','.join(labels))
+            return RawInline('latex', link)
+
+        else:
+            D = [self.refdict[label] for label in labels]
+            # uniquely ordered types
+            types = list(OrderedDict.fromkeys(d['type'] for d in D))
+
+            links = []
+
+            for t in set(types):
+                n = [d['id'] for d in D if d['type'] == t]
+                labels = ['#' + d['label'] for d in D if d['type'] == t]
+                multi_link = create_pandoc_multilink(n, labels)
+
+                if len(labels) == 1:
+                    multi_link.insert(0, pf.Str(self.replacements[t].format('')))
+                else:
+                    multi_link.insert(0, pf.Str(self.multi_replacements[t]))
+
+                links.append(multi_link)
+
+            return join_items(links, method='extend')
 
     @property
     def reference_filter(self):
