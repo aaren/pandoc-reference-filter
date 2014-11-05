@@ -110,6 +110,7 @@ InternalRef = pf.elt('InternalRef', 3)
 # and multiple references [pre, [label], post]
 MultiInternalRef = pf.elt('MultiInternalRef', 3)
 
+
 def create_pandoc_multilink(strings, refs):
     inlines = [[pf.Str(str(s))] for s in strings]
     targets = [(r, "") for r in refs]
@@ -214,7 +215,7 @@ class ReferenceManager(object):
     section_count = [0, 0, 0, 0, 0, 0]
     figure_count = 0
     equation_count = 0
-    refdict = {}
+    references = {}
 
     replacements = {'figure': 'Figure {}',
                     'section': 'Section {}',
@@ -250,7 +251,7 @@ class ReferenceManager(object):
     def consume_and_replace_references(self, key, value, format, metadata):
         """Find all figures, sections and equations that can be
         referenced in the document and replace them with appropriate
-        text whilst appending to the internal refdict.
+        text whilst appending to the internal references.
         """
         if isFigure(key, value):
             return self.figure_replacement(key, value, format, metadata)
@@ -261,13 +262,13 @@ class ReferenceManager(object):
 
     def figure_replacement(self, key, value, format, metadata):
         """Replace figures with appropriate representation and
-        append info to the refdict.
+        append info to the references.
 
         This works with Figure, which is our special type for images
         with attributes. This allows us to set an id in the attributes.
 
         The other way of doing it would be to pull out a '\label{(.*)}'
-        from the caption of an Image and use that to update the refdict.
+        from the caption of an Image and use that to update the references.
         """
         _caption, (filename, target), (id, classes, kvs) = value
         caption = pf.stringify(_caption)
@@ -284,9 +285,9 @@ class ReferenceManager(object):
             else:
                 fcaption = 'Figure {n}'.format(n=self.figure_count)
 
-            self.refdict[id] = {'type': 'figure',
-                                'id': self.figure_count,
-                                'label': id}
+            self.references[id] = {'type': 'figure',
+                                   'id': self.figure_count,
+                                   'label': id}
 
         if 'figure' not in classes:
             classes.insert(0, 'figure')
@@ -306,7 +307,7 @@ class ReferenceManager(object):
 
     def section_replacement(self, key, value, format, metadata):
         """Replace sections with appropriate representation and
-        append info to the refdict.
+        append info to the references.
         """
         level, attr, text = value
         label, classes, kvs = attr
@@ -316,9 +317,9 @@ class ReferenceManager(object):
         else:
             self.increment_section_count(level)
             secn = self.format_section_count(level)
-            self.refdict[label] = {'type': 'section',
-                                   'id': secn,
-                                   'label': label}
+            self.references[label] = {'type': 'section',
+                                      'id': secn,
+                                      'label': label}
             pretext = '{}: '.format(secn)
 
         pretext = [pf.Str(pretext)]
@@ -333,7 +334,7 @@ class ReferenceManager(object):
     def math_replacement(self, key, value, format, metadata):
         """Math should not need replacing as mathjax / latex will
         take care of any references. All we do is append to the
-        refdict and increment an equation count (which nothing uses
+        references and increment an equation count (which nothing uses
         yet).
 
         http://meta.math.stackexchange.com/questions/3764/equation-and-equation-is-the-same-for-me
@@ -341,21 +342,21 @@ class ReferenceManager(object):
         self.equation_count += 1
         mathtype, math = value
         label, = re.search(r'\\label{([\w:&^]+)}', math).groups()
-        self.refdict[label] = {'type': 'math',
-                               'id': self.equation_count,
-                               'label': label}
+        self.references[label] = {'type': 'math',
+                                  'id': self.equation_count,
+                                  'label': label}
         return None
 
     def create_internal_refs(self, key, value, format, metadata):
         """Convert #label in the text into InternalRef, but only if the
-        label is in the refdict.
+        label is in the references.
         """
         if isinternalref(key, value):
             pre, link, post = imp_reflink_pattern.match(value).groups()
             labels = link.split('#')
 
-            # filter out labels not in refdict
-            labels = [label for label in labels if label in self.refdict]
+            # filter out labels not in references
+            labels = [label for label in labels if label in self.references]
 
             if len(labels) == 0:
                 return None
@@ -377,8 +378,8 @@ class ReferenceManager(object):
         else:
             pre, label, post = value
 
-        rtype = self.refdict[label]['type']
-        n = self.refdict[label]['id']
+        rtype = self.references[label]['type']
+        n = self.references[label]['id']
         text = self.replacements[rtype].format(n)
 
         if format in self.formats or True:
@@ -404,7 +405,7 @@ class ReferenceManager(object):
             return RawInline('latex', link)
 
         else:
-            D = [self.refdict[label] for label in labels]
+            D = [self.references[label] for label in labels]
             # uniquely ordered types
             types = list(OrderedDict.fromkeys(d['type'] for d in D))
 
@@ -416,7 +417,8 @@ class ReferenceManager(object):
                 multi_link = create_pandoc_multilink(n, labels)
 
                 if len(labels) == 1:
-                    multi_link.insert(0, pf.Str(self.replacements[t].format('')))
+                    multi_link.insert(0,
+                                      pf.Str(self.replacements[t].format('')))
                 else:
                     multi_link.insert(0, pf.Str(self.multi_replacements[t]))
 
