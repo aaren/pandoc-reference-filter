@@ -16,7 +16,7 @@ setup(
     author_email='dev@aaren.me',
     license='BSD 2-Clause',
     url='http://github.com/aaren/pandoc-internal-references',
-    install_requires=['pandocfilters', ],
+    install_requires=['pandocfilters', 'pandoc-attributes'],
     entry_points={
         'console_scripts': [
             'internal-references = internalreferences:main',

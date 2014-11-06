@@ -3,7 +3,7 @@ from collections import OrderedDict
 
 import pandocfilters as pf
 
-from attributes import PandocAttributes
+from pandocattributes import PandocAttributes
 
 
 figure_styles = {'latex': ('\n'
