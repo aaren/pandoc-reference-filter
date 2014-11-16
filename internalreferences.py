@@ -248,10 +248,21 @@ class ReferenceManager(object):
         """
         return '.'.join(str(i) for i in self.section_count[:header_level])
 
-    def consume_and_replace_references(self, key, value, format, metadata):
+    def consume_references(self, key, value, format, metadata):
+        """Find all figures, sections and math in the document
+        and append reference information to the reference state.
+        """
+        if isFigure(key, value):
+            self.consume_figure(key, value, format, metadata)
+        elif isheader(key, value) and format in self.formats:
+            self.consume_section(key, value, format, metadata)
+        elif islabeledmath(key, value):
+            self.consume_math(key, value, format, metadata)
+
+    def replace_references(self, key, value, format, metadata):
         """Find all figures, sections and equations that can be
-        referenced in the document and replace them with appropriate
-        text whilst appending to the internal references.
+        referenced in the document and replace them with format
+        appropriate substitutions.
         """
         if isFigure(key, value):
             return self.figure_replacement(key, value, format, metadata)
@@ -260,9 +271,48 @@ class ReferenceManager(object):
         elif islabeledmath(key, value):
             return self.math_replacement(key, value, format, metadata)
 
+    def consume_figure(self, key, value, format, metadata):
+        """If the key, value represents a figure, append reference
+        data to internal state.
+        """
+        _caption, (filename, target), (id, classes, kvs) = value
+        if 'unnumbered' in classes:
+            return
+        else:
+            self.figure_count += 1
+            self.references[id] = {'type': 'figure',
+                                   'id': self.figure_count,
+                                   'label': id}
+
+    def consume_section(self, key, value, format, metadata):
+        """If the key, value represents a section, append reference
+        data to internal state.
+        """
+        level, attr, text = value
+        label, classes, kvs = attr
+
+        if 'unnumbered' in classes:
+            return
+        else:
+            self.increment_section_count(level)
+            secn = self.format_section_count(level)
+            self.references[label] = {'type': 'section',
+                                      'id': secn,
+                                      'label': label}
+
+    def consume_math(self, key, value, format, metadata):
+        """If the key, value represents math, append reference
+        data to internal state.
+        """
+        self.equation_count += 1
+        mathtype, math = value
+        label, = re.search(r'\\label{([\w:&^]+)}', math).groups()
+        self.references[label] = {'type': 'math',
+                                  'id': self.equation_count,
+                                  'label': label}
+
     def figure_replacement(self, key, value, format, metadata):
-        """Replace figures with appropriate representation and
-        append info to the references.
+        """Replace figures with appropriate representation.
 
         This works with Figure, which is our special type for images
         with attributes. This allows us to set an id in the attributes.
@@ -277,17 +327,13 @@ class ReferenceManager(object):
             star = '*'
             fcaption = caption
         else:
-            self.figure_count += 1
+            ref = self.references[id]
             star = ''
             if caption:
-                fcaption = 'Figure {n}: {caption}'.format(n=self.figure_count,
+                fcaption = 'Figure {n}: {caption}'.format(n=ref['id'],
                                                           caption=caption)
             else:
-                fcaption = 'Figure {n}'.format(n=self.figure_count)
-
-            self.references[id] = {'type': 'figure',
-                                   'id': self.figure_count,
-                                   'label': id}
+                fcaption = 'Figure {n}'.format(n=ref['id'])
 
         if 'figure' not in classes:
             classes.insert(0, 'figure')
@@ -306,8 +352,7 @@ class ReferenceManager(object):
             return pf.Para([RawInline(format, figure)])
 
     def section_replacement(self, key, value, format, metadata):
-        """Replace sections with appropriate representation and
-        append info to the references.
+        """Replace sections with appropriate representation.
         """
         level, attr, text = value
         label, classes, kvs = attr
@@ -315,12 +360,8 @@ class ReferenceManager(object):
         if 'unnumbered' in classes:
             pretext = ''
         else:
-            self.increment_section_count(level)
-            secn = self.format_section_count(level)
-            self.references[label] = {'type': 'section',
-                                      'id': secn,
-                                      'label': label}
-            pretext = '{}: '.format(secn)
+            ref = self.references[label]
+            pretext = '{}: '.format(ref['id'])
 
         pretext = [pf.Str(pretext)]
 
@@ -333,19 +374,11 @@ class ReferenceManager(object):
 
     def math_replacement(self, key, value, format, metadata):
         """Math should not need replacing as mathjax / latex will
-        take care of any references. All we do is append to the
-        references and increment an equation count (which nothing uses
-        yet).
+        take care of any references.
 
         http://meta.math.stackexchange.com/questions/3764/equation-and-equation-is-the-same-for-me
         """
-        self.equation_count += 1
-        mathtype, math = value
-        label, = re.search(r'\\label{([\w:&^]+)}', math).groups()
-        self.references[label] = {'type': 'math',
-                                  'id': self.equation_count,
-                                  'label': label}
-        return None
+        return
 
     def create_internal_refs(self, key, value, format, metadata):
         """Convert #label in the text into InternalRef, but only if the
@@ -429,7 +462,8 @@ class ReferenceManager(object):
     @property
     def reference_filter(self):
         return [create_figures,
-                self.consume_and_replace_references,
+                self.consume_references,
+                self.replace_references,
                 self.create_internal_refs,
                 self.convert_internal_refs]
 
