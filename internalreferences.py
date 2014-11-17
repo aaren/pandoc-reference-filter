@@ -78,6 +78,15 @@ def RawInline(format, string):
     return pf.RawInline(format, string)
 
 
+def RawBlock(format, string):
+    """Overwrite pandocfilters RawBlock so that html5
+    and html raw output both use the html writer.
+    """
+    if format == 'html5':
+        format = 'html'
+    return pf.RawBlock(format, string)
+
+
 def isheader(key, value):
     return (key == 'Header')
 
@@ -347,7 +356,8 @@ class ReferenceManager(object):
                                                   fcaption=fcaption,
                                                   caption=caption,
                                                   star=star)
-            return pf.Para([RawInline(format, figure)])
+
+            return RawBlock(format, figure)
 
     def section_replacement(self, key, value, format, metadata):
         """Replace sections with appropriate representation.
