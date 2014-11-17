@@ -11,23 +11,23 @@ figure_styles = {'latex': ('\n'
                            '\\centering\n'
                            '\\includegraphics{{{filename}}}\n'
                            '\\caption{star}{{{caption}}}\n'
-                           '\\label{{{id}}}\n'
+                           '\\label{{{attr.id}}}\n'
                            '\\end{{figure}}\n'),
 
                  'html': ('\n'
-                          '<div {attrs}>\n'
+                          '<div {attr.html}>\n'
                           '<img src="{filename}" alt="{alt}" />'
                           '<p class="caption">{fcaption}</p>\n'
                           '</div>\n'),
 
                  'html5': ('\n'
-                           '<figure {attrs}>\n'
+                           '<figure {attr.html}>\n'
                            '<img src="{filename}" alt="{alt}" />\n'
                            '<figcaption>{fcaption}</figcaption>\n'
                            '</figure>'),
 
                  'markdown': ('\n'
-                              '<div {attrs}>\n'
+                              '<div {attr.html}>\n'
                               '![{fcaption}]({filename})\n'
                               '\n'
                               '</div>\n')
@@ -320,14 +320,16 @@ class ReferenceManager(object):
         The other way of doing it would be to pull out a '\label{(.*)}'
         from the caption of an Image and use that to update the references.
         """
-        _caption, (filename, target), (id, classes, kvs) = value
+        _caption, (filename, target), attrs = value
         caption = pf.stringify(_caption)
 
-        if 'unnumbered' in classes:
+        attr = PandocAttributes(attrs)
+
+        if 'unnumbered' in attr.classes:
             star = '*'
             fcaption = caption
         else:
-            ref = self.references[id]
+            ref = self.references[attr.id]
             star = ''
             if caption:
                 fcaption = 'Figure {n}: {caption}'.format(n=ref['id'],
@@ -335,15 +337,11 @@ class ReferenceManager(object):
             else:
                 fcaption = 'Figure {n}'.format(n=ref['id'])
 
-        if 'figure' not in classes:
-            classes.insert(0, 'figure')
-
-        attr = PandocAttributes((id, classes, kvs))
-        attrs = attr.to_html()
+        if 'figure' not in attr.classes:
+            attr.classes.insert(0, 'figure')
 
         if format in self.formats:
-            figure = figure_styles[format].format(attrs=attrs,
-                                                  id=id,
+            figure = figure_styles[format].format(attr=attr,
                                                   filename=filename,
                                                   alt=fcaption,
                                                   fcaption=fcaption,
