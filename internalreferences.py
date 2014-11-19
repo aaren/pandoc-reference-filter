@@ -5,68 +5,8 @@ import pandocfilters as pf
 
 from pandocattributes import PandocAttributes
 
-
-figure_styles = {'latex': ('\n'
-                           '\\begin{{figure}}[htbp]\n'
-                           '\\centering\n'
-                           '\\includegraphics{{{filename}}}\n'
-                           '\\caption{star}{{{caption}}}\n'
-                           '\\label{{{attr.id}}}\n'
-                           '\\end{{figure}}\n'),
-
-                 'html': ('\n'
-                          '<div {attr.html}>\n'
-                          '<img src="{filename}" alt="{alt}" />'
-                          '<p class="caption">{fcaption}</p>\n'
-                          '</div>\n'),
-
-                 'html5': ('\n'
-                           '<figure {attr.html}>\n'
-                           '<img src="{filename}" alt="{alt}" />\n'
-                           '<figcaption>{fcaption}</figcaption>\n'
-                           '</figure>\n'),
-
-                 'markdown': ('\n'
-                              '<div {attr.html}>\n'
-                              '![{fcaption}]({filename})\n'
-                              '\n'
-                              '</div>\n')
-                 }
-
-# replacement text to use for in text internal links
-# that refer to various types of thing, in different
-# output formats
-latex_link = '{pre}\\autoref{{{label}}}{post}'
-html_link = '{pre}<a href="#{label}">{text}</a>{post}'
-markdown_link = '{pre}[{text}](#{label}){post}'
-
-latex_math_link = '{pre}\\autoref{{{label}}}{post}'
-html_math_link = '{pre}Equation \\eqref{{{label}}}{post}'
-markdown_math_link = '{pre}Equation $\\eqref{{{label}}}${post}'
-
-latex_multi_link = '\\cref{{{labels}}}{post}'
-
-link_styles = {
-    'latex': {'figure': latex_link,
-              'section': latex_link,
-              'math': latex_math_link},
-    'html': {'figure': html_link,
-             'section': html_link,
-             'math': html_math_link},
-    'html5': {'figure': html_link,
-              'section': html_link,
-              'math': html_math_link},
-    'markdown': {'figure': markdown_link,
-                 'section': markdown_link,
-                 'math': markdown_math_link}
-}
-
-
-# http://cdn.mathjax.org/mathjax/latest/test/sample-eqrefs.html
-# mathjax claims that you can get equation references on regular
-# display math but I'm only finding it to work on equation
-# environments.
-# No, you can, just need autoequations: 'all' rather than 'AMS'
+from identity import *
+from styles import *
 
 
 def RawInline(format, string):
@@ -87,37 +27,15 @@ def RawBlock(format, string):
     return pf.RawBlock(format, string)
 
 
-def isheader(key, value):
-    return (key == 'Header')
-
-
-def islabeledmath(key, value):
-    return (key == 'Math' and re.search(r'\\label{\S*}', value[1]))
-
-
-# pattern that matches #reflink
-# only allow characters that we can have in latex labels
-# https://tex.stackexchange.com/questions/18311/valid-label-names
-# currently have to be after whitespace
-# terminated by a disallowed latex character or a pipe. Use a pipe
-# if you want to follow the reflink with a ':', i.e. #reflink|:
-# Multiple references are possible - #one#two#three
-imp_reflink_pattern = re.compile(r'([\s]?)#([\w:&^#]+)\|?(.*)')
-
-# https://tex.stackexchange.com/questions/15728/multiple-references-with-autoref
-# https://github.com/mathjax/MathJax/issues/71
-# http://docs.mathjax.org/en/latest/tex.html#automatic-equation-numbering
-
-
-def isinternalref(key, value):
-    # This can fall over if we don't create_figures from our
-    # special attr images first - it can match #id in the attrs
-    return key == 'Str' and imp_reflink_pattern.match(value)
-
 # define a new type for internal references [pre, label, post]
 InternalRef = pf.elt('InternalRef', 3)
 # and multiple references [pre, [label], post]
+# https://tex.stackexchange.com/questions/15728/multiple-references-with-autoref
+# https://github.com/mathjax/MathJax/issues/71
+# http://docs.mathjax.org/en/latest/tex.html#automatic-equation-numbering
 MultiInternalRef = pf.elt('MultiInternalRef', 3)
+# define a new Figure type - an image with attributes
+Figure = pf.elt('Figure', 3)  # caption, target, attrs
 
 
 def create_pandoc_multilink(strings, refs):
@@ -154,33 +72,6 @@ def join_items(items, method='append'):
     join_to_out(items[-1])
 
     return out
-
-
-def isattr(string):
-    return string.startswith('{') and string.endswith('}')
-
-
-def isfigure(key, value):
-    return (key == 'Para' and len(value) == 2 and value[0]['t'] == 'Image')
-
-
-def isattrfigure(key, value):
-    return (key == 'Para'
-            and value[0]['t'] == 'Image'
-            and isattr(pf.stringify(value[1:])))
-
-
-def isdivfigure(key, value):
-    """Matches images contained in a Div with 'figure' as a class."""
-    return (key == 'Div' and 'figure' in value[0][1])
-
-
-# define a new Figure type - an image with attributes
-Figure = pf.elt('Figure', 3)  # caption, target, attrs
-
-
-def isFigure(key, value):
-    return key == 'Figure'
 
 
 def create_figures(key, value, format, metadata):
