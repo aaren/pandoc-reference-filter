@@ -1,16 +1,18 @@
 <h2 id="sec:expt" class="class1 class2" key="value">0.1: Experiments with pandoc figures</h2>
-<p>
+
 <figure id="fig:attr" class="figure class1 class2" key=value>
 <img src="image.png" alt="Figure 1: a figure that can be referred to" />
 <figcaption>Figure 1: a figure that can be referred to</figcaption>
-</figure></p>
+</figure>
+
 <p>Here is a reference to <a href="#fig:attr">Figure 1</a> and here is one to <a href="#fig:attr2">Figure 2</a>.</p>
 <p>Here is reference to the section called <a href="#sec:expt">Section 0.1</a>.</p>
-<p>
+
 <figure id="fig:attr2" class="figure">
 <img src="image.png" alt="Figure 2: another figure that can be referred to" />
 <figcaption>Figure 2: another figure that can be referred to</figcaption>
-</figure></p>
+</figure>
+
 <figure>
 <img src="image.png" alt="figure with no attr" /><figcaption>figure with no attr</figcaption>
 </figure>
@@ -20,11 +22,12 @@
 \label{eq:silly}
 \]</span></p>
 <h2 id="unnumbered-section" class="unnumbered">Unnumbered Section</h2>
-<p>
+
 <figure id="fig:nonum" class="figure unnumbered">
 <img src="image.png" alt="no numbering here" />
 <figcaption>no numbering here</figcaption>
-</figure></p>
+</figure>
+
 <h2 id="multiple-references" class="unnumbered">Multiple references</h2>
 <p>We can refer to multiple things of the same type: Figures <a href="#fig:attr">1</a> and <a href="#fig:attr2">2</a></p>
 <p>Or to multiple things of mixed type: Section <a href="#sec:expt">0.1</a>, Equation <a href="#eq:silly">1</a> and Figures <a href="#fig:attr">1</a> and <a href="#fig:attr2">2</a></p>

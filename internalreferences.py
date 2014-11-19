@@ -24,7 +24,7 @@ figure_styles = {'latex': ('\n'
                            '<figure {attr.html}>\n'
                            '<img src="{filename}" alt="{alt}" />\n'
                            '<figcaption>{fcaption}</figcaption>\n'
-                           '</figure>'),
+                           '</figure>\n'),
 
                  'markdown': ('\n'
                               '<div {attr.html}>\n'
