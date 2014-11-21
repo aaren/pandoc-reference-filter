@@ -250,6 +250,13 @@ class ReferenceManager(object):
 
             return RawBlock(format, figure)
 
+        else:
+            alt = [pf.Str(fcaption)]
+            target = (filename, '')
+            image = pf.Image(alt, target)
+            figure = pf.Para([image])
+            return pf.Div(attr.to_pandoc(), [figure])
+
     def section_replacement(self, key, value, format, metadata):
         """Replace sections with appropriate representation.
         """
@@ -270,6 +277,9 @@ class ReferenceManager(object):
         elif format == 'latex':
             # have to do this to get rid of hyperref
             return pf.Header(level, attr, text)
+
+        else:
+            return pf.Header(level, attr, pretext + text)
 
     def math_replacement(self, key, value, format, metadata):
         """Math should not need replacing as mathjax / latex will
@@ -314,12 +324,16 @@ class ReferenceManager(object):
         n = self.references[label]['id']
         text = self.replacements[rtype].format(n)
 
-        if format in self.formats or True:
+        if format in self.formats:
             link = link_styles[format][rtype].format(text=text,
                                                      label=label,
                                                      pre=pre,
                                                      post=post)
             return RawInline(format, link)
+
+        else:
+            link = pf.Link([pf.Str(text)], ('#' + label, ''))
+            return [pf.Str(pre), link, pf.Str(post)]
 
     def convert_multiref(self, key, value, format, metadata):
         """Convert all internal links from '#blah' into format

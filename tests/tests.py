@@ -1,4 +1,5 @@
 import subprocess
+import json
 
 import nose.tools as nt
 
@@ -57,6 +58,14 @@ def test_html5():
 def test_latex():
     _test('latex')
 
+
+def test_generic():
+    test = json.loads(call_pandoc('json'))
+
+    with open('tests/spec.json') as f:
+        ref = json.load(f)
+
+    assert test == ref
 
 def test_all_formats():
     for format in ('markdown', 'latex', 'html', 'html5'):
