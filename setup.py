@@ -8,10 +8,10 @@ except (IOError, ImportError):
 
 setup(
     name="pandoc-internal-references",
-    version='0.3',
+    version='0.4',
     description="Image attributes and internal referencing in markdown",
     long_description=long_description,
-    py_modules=['internalreferences'],
+    packages=['internalreferences'],
     author="Aaron O'Leary",
     author_email='dev@aaren.me',
     license='BSD 2-Clause',
