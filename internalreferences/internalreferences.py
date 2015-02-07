@@ -232,10 +232,10 @@ class ReferenceManager(object):
             ref = self.references[attr.id]
             star = ''
             if caption:
-                fcaption = 'Figure {n}: {caption}'.format(n=ref['id'],
-                                                          caption=caption)
+                fcaption = u'Figure {n}: {caption}'.format(n=ref['id'],
+                                                           caption=caption)
             else:
-                fcaption = 'Figure {n}'.format(n=ref['id'])
+                fcaption = u'Figure {n}'.format(n=ref['id'])
 
         if 'figure' not in attr.classes:
             attr.classes.insert(0, 'figure')
@@ -246,7 +246,7 @@ class ReferenceManager(object):
                                                   alt=fcaption,
                                                   fcaption=fcaption,
                                                   caption=caption,
-                                                  star=star)
+                                                  star=star).encode('utf-8')
 
             return RawBlock(format, figure)
 

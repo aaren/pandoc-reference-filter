@@ -1,43 +1,43 @@
 figure_styles = {
-    'latex': ('\n'
-              '\\begin{{figure}}[htbp]\n'
-              '\\centering\n'
-              '\\includegraphics{{{filename}}}\n'
-              '\\caption{star}{{{caption}}}\n'
-              '\\label{{{attr.id}}}\n'
-              '\\end{{figure}}\n'),
+    'latex': (u'\n'
+               '\\begin{{figure}}[htbp]\n'
+               '\\centering\n'
+               '\\includegraphics{{{filename}}}\n'
+               '\\caption{star}{{{caption}}}\n'
+               '\\label{{{attr.id}}}\n'
+               '\\end{{figure}}\n'),
 
-    'html': ('\n'
-             '<div {attr.html}>\n'
-             '<img src="{filename}" alt="{alt}" />'
-             '<p class="caption">{fcaption}</p>\n'
-             '</div>\n'),
+    'html': (u'\n'
+              '<div {attr.html}>\n'
+              '<img src="{filename}" alt="{alt}" />'
+              '<p class="caption">{fcaption}</p>\n'
+              '</div>\n'),
 
-    'html5': ('\n'
-              '<figure {attr.html}>\n'
-              '<img src="{filename}" alt="{alt}" />\n'
-              '<figcaption>{fcaption}</figcaption>\n'
-              '</figure>\n'),
+    'html5': (u'\n'
+               '<figure {attr.html}>\n'
+               '<img src="{filename}" alt="{alt}" />\n'
+               '<figcaption>{fcaption}</figcaption>\n'
+               '</figure>\n'),
 
-    'markdown': ('\n'
-                 '<div {attr.html}>\n'
-                 '![{fcaption}]({filename})\n'
-                 '\n'
-                 '</div>\n')
+    'markdown': (u'\n'
+                  '<div {attr.html}>\n'
+                  '![{fcaption}]({filename})\n'
+                  '\n'
+                  '</div>\n')
 }
 
 # replacement text to use for in text internal links
 # that refer to various types of thing, in different
 # output formats
-latex_link = '{pre}\\autoref{{{label}}}{post}'
-html_link = '{pre}<a href="#{label}">{text}</a>{post}'
-markdown_link = '{pre}[{text}](#{label}){post}'
+latex_link = u'{pre}\\autoref{{{label}}}{post}'
+html_link = u'{pre}<a href="#{label}">{text}</a>{post}'
+markdown_link = u'{pre}[{text}](#{label}){post}'
 
-latex_math_link = '{pre}\\autoref{{{label}}}{post}'
-html_math_link = '{pre}Equation \\eqref{{{label}}}{post}'
-markdown_math_link = '{pre}Equation $\\eqref{{{label}}}${post}'
+latex_math_link = u'{pre}\\autoref{{{label}}}{post}'
+html_math_link = u'{pre}Equation \\eqref{{{label}}}{post}'
+markdown_math_link = u'{pre}Equation $\\eqref{{{label}}}${post}'
 
-latex_multi_link = '\\cref{{{labels}}}{post}'
+latex_multi_link = u'\\cref{{{labels}}}{post}'
 
 link_styles = {
     'latex': {'figure': latex_link,
