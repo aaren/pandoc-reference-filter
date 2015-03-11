@@ -1,10 +1,11 @@
-\subsection{Experiments with pandoc figures}\label{sec:expt}
+\subsection{Experiments with pandoc figures
+(ˈjuːnɪˌkəʊd!)}\label{sec:expt}
 
 
 \begin{figure}[htbp]
 \centering
 \includegraphics{image.png}
-\caption{a figure that can be referred to}
+\caption{a figure that can be referred to (ˈjuːnɪˌkəʊd!)}
 \label{fig:attr}
 \end{figure}
 
@@ -17,14 +18,14 @@ Here is reference to the section called \autoref{sec:expt}.
 \begin{figure}[htbp]
 \centering
 \includegraphics{image.png}
-\caption{another figure that can be referred to}
+\caption{another figure that can be referred to (ˈjuːnɪˌkəʊd!)}
 \label{fig:attr2}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics{image.png}
-\caption{figure with no attr}
+\caption{figure with no attr (ˈjuːnɪˌkəʊd!)}
 \end{figure}
 
 Here is \autoref{eq:silly}:
@@ -41,7 +42,7 @@ Here is \autoref{eq:silly}:
 \begin{figure}[htbp]
 \centering
 \includegraphics{image.png}
-\caption*{no numbering here}
+\caption*{no numbering here (ˈjuːnɪˌkəʊd!)}
 \label{fig:nonum}
 \end{figure}
 

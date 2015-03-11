@@ -1,9 +1,9 @@
-0.1: Experiments with pandoc figures {#sec:expt .class1 .class2 key="value"}
-------------------------------------
+0.1: Experiments with pandoc figures (ˈjuːnɪˌkəʊd!) {#sec:expt .class1 .class2 key="value"}
+---------------------------------------------------
 
 
 <div id="fig:attr" class="figure class1 class2" key=value>
-![Figure 1: a figure that can be referred to](image.png)
+![Figure 1: a figure that can be referred to (ˈjuːnɪˌkəʊd!)](image.png)
 
 </div>
 
@@ -14,11 +14,11 @@ Here is reference to the section called [Section 0.1](#sec:expt).
 
 
 <div id="fig:attr2" class="figure">
-![Figure 2: another figure that can be referred to](image.png)
+![Figure 2: another figure that can be referred to (ˈjuːnɪˌkəʊd!)](image.png)
 
 </div>
 
-![figure with no attr](image.png)
+![figure with no attr (ˈjuːnɪˌkəʊd!)](image.png)
 
 Here is Equation $\eqref{eq:silly}$:
 
@@ -32,7 +32,7 @@ Unnumbered Section {#unnumbered-section .unnumbered}
 
 
 <div id="fig:nonum" class="figure unnumbered">
-![no numbering here](image.png)
+![no numbering here (ˈjuːnɪˌkəʊd!)](image.png)
 
 </div>
 

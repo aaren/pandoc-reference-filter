@@ -1,20 +1,20 @@
-<h2 id="sec:expt" class="class1 class2" key="value">0.1: Experiments with pandoc figures</h2>
+<h2 id="sec:expt" class="class1 class2" key="value">0.1: Experiments with pandoc figures (ˈjuːnɪˌkəʊd!)</h2>
 
 <figure id="fig:attr" class="figure class1 class2" key=value>
-<img src="image.png" alt="Figure 1: a figure that can be referred to" />
-<figcaption>Figure 1: a figure that can be referred to</figcaption>
+<img src="image.png" alt="Figure 1: a figure that can be referred to (ˈjuːnɪˌkəʊd!)" />
+<figcaption>Figure 1: a figure that can be referred to (ˈjuːnɪˌkəʊd!)</figcaption>
 </figure>
 
 <p>Here is a reference to <a href="#fig:attr">Figure 1</a> and here is one to <a href="#fig:attr2">Figure 2</a>.</p>
 <p>Here is reference to the section called <a href="#sec:expt">Section 0.1</a>.</p>
 
 <figure id="fig:attr2" class="figure">
-<img src="image.png" alt="Figure 2: another figure that can be referred to" />
-<figcaption>Figure 2: another figure that can be referred to</figcaption>
+<img src="image.png" alt="Figure 2: another figure that can be referred to (ˈjuːnɪˌkəʊd!)" />
+<figcaption>Figure 2: another figure that can be referred to (ˈjuːnɪˌkəʊd!)</figcaption>
 </figure>
 
 <figure>
-<img src="image.png" alt="figure with no attr" /><figcaption>figure with no attr</figcaption>
+<img src="image.png" alt="figure with no attr (ˈjuːnɪˌkəʊd!)" /><figcaption>figure with no attr (ˈjuːnɪˌkəʊd!)</figcaption>
 </figure>
 <p>Here is Equation \eqref{eq:silly}:</p>
 <p><span class="math">\[
@@ -24,8 +24,8 @@
 <h2 id="unnumbered-section" class="unnumbered">Unnumbered Section</h2>
 
 <figure id="fig:nonum" class="figure unnumbered">
-<img src="image.png" alt="no numbering here" />
-<figcaption>no numbering here</figcaption>
+<img src="image.png" alt="no numbering here (ˈjuːnɪˌkəʊd!)" />
+<figcaption>no numbering here (ˈjuːnɪˌkəʊd!)</figcaption>
 </figure>
 
 <h2 id="multiple-references" class="unnumbered">Multiple references</h2>

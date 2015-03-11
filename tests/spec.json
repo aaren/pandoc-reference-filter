@@ -1,0 +1,784 @@
+[
+  {
+    "unMeta": {}
+  },
+  [
+    {
+      "t": "Header",
+      "c": [
+        2,
+        [
+          "sec:expt",
+          [
+            "class1",
+            "class2"
+          ],
+          [
+            [
+              "key",
+              "value"
+            ]
+          ]
+        ],
+        [
+          {
+            "t": "Str",
+            "c": "Experiments"
+          },
+          {
+            "t": "Space",
+            "c": []
+          },
+          {
+            "t": "Str",
+            "c": "with"
+          },
+          {
+            "t": "Space",
+            "c": []
+          },
+          {
+            "t": "Str",
+            "c": "pandoc"
+          },
+          {
+            "t": "Space",
+            "c": []
+          },
+          {
+            "t": "Str",
+            "c": "figures"
+          },
+          {
+            "t": "Space",
+            "c": []
+          },
+          {
+            "t": "Str",
+            "c": "(ˈjuːnɪˌkəʊd!)"
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Div",
+      "c": [
+        [
+          "fig:attr",
+          [
+            "figure",
+            "class1",
+            "class2"
+          ],
+          [
+            [
+              "key",
+              "value"
+            ]
+          ]
+        ],
+        [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Image",
+                "c": [
+                  [
+                    {
+                      "t": "Str",
+                      "c": "Figure 1: a figure that can be referred to (ˈjuːnɪˌkəʊd!)"
+                    }
+                  ],
+                  [
+                    "image.png",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Here"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "is"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "a"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "reference"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "to"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": ""
+        },
+        {
+          "t": "Link",
+          "c": [
+            [
+              {
+                "t": "Str",
+                "c": "Figure 1"
+              }
+            ],
+            [
+              "#fig:attr",
+              ""
+            ]
+          ]
+        },
+        {
+          "t": "Str",
+          "c": ""
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "and"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "here"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "is"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "one"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "to"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": ""
+        },
+        {
+          "t": "Link",
+          "c": [
+            [
+              {
+                "t": "Str",
+                "c": "Figure 2"
+              }
+            ],
+            [
+              "#fig:attr2",
+              ""
+            ]
+          ]
+        },
+        {
+          "t": "Str",
+          "c": "."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Here"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "is"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "reference"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "to"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "the"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "section"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "called"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "#sec:expt."
+        }
+      ]
+    },
+    {
+      "t": "Div",
+      "c": [
+        [
+          "fig:attr2",
+          [
+            "figure"
+          ],
+          []
+        ],
+        [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Image",
+                "c": [
+                  [
+                    {
+                      "t": "Str",
+                      "c": "Figure 2: another figure that can be referred to (ˈjuːnɪˌkəʊd!)"
+                    }
+                  ],
+                  [
+                    "image.png",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Image",
+          "c": [
+            [
+              {
+                "t": "Str",
+                "c": "figure"
+              },
+              {
+                "t": "Space",
+                "c": []
+              },
+              {
+                "t": "Str",
+                "c": "with"
+              },
+              {
+                "t": "Space",
+                "c": []
+              },
+              {
+                "t": "Str",
+                "c": "no"
+              },
+              {
+                "t": "Space",
+                "c": []
+              },
+              {
+                "t": "Str",
+                "c": "attr"
+              },
+              {
+                "t": "Space",
+                "c": []
+              },
+              {
+                "t": "Str",
+                "c": "(ˈjuːnɪˌkəʊd!)"
+              }
+            ],
+            [
+              "image.png",
+              "fig:"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Here"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "is"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": ""
+        },
+        {
+          "t": "Link",
+          "c": [
+            [
+              {
+                "t": "Str",
+                "c": "Equation 1"
+              }
+            ],
+            [
+              "#eq:silly",
+              ""
+            ]
+          ]
+        },
+        {
+          "t": "Str",
+          "c": ":"
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Math",
+          "c": [
+            {
+              "t": "DisplayMath",
+              "c": []
+            },
+            "\n2 + 2 = 5\n\\label{eq:silly}\n"
+          ]
+        }
+      ]
+    },
+    {
+      "t": "Header",
+      "c": [
+        2,
+        [
+          "unnumbered-section",
+          [
+            "unnumbered"
+          ],
+          []
+        ],
+        [
+          {
+            "t": "Str",
+            "c": "Unnumbered"
+          },
+          {
+            "t": "Space",
+            "c": []
+          },
+          {
+            "t": "Str",
+            "c": "Section"
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Div",
+      "c": [
+        [
+          "fig:nonum",
+          [
+            "figure",
+            "unnumbered"
+          ],
+          []
+        ],
+        [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Image",
+                "c": [
+                  [
+                    {
+                      "t": "Str",
+                      "c": "no numbering here (ˈjuːnɪˌkəʊd!)"
+                    }
+                  ],
+                  [
+                    "image.png",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Header",
+      "c": [
+        2,
+        [
+          "multiple-references",
+          [
+            "unnumbered"
+          ],
+          []
+        ],
+        [
+          {
+            "t": "Str",
+            "c": "Multiple"
+          },
+          {
+            "t": "Space",
+            "c": []
+          },
+          {
+            "t": "Str",
+            "c": "references"
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "We"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "can"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "refer"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "to"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "multiple"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "things"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "of"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "the"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "same"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "type:"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "Figures "
+        },
+        {
+          "t": "Link",
+          "c": [
+            [
+              {
+                "t": "Str",
+                "c": "1"
+              }
+            ],
+            [
+              "#fig:attr",
+              ""
+            ]
+          ]
+        },
+        {
+          "t": "Str",
+          "c": " and "
+        },
+        {
+          "t": "Link",
+          "c": [
+            [
+              {
+                "t": "Str",
+                "c": "2"
+              }
+            ],
+            [
+              "#fig:attr2",
+              ""
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Or"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "to"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "multiple"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "things"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "of"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "mixed"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "type:"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "Equation "
+        },
+        {
+          "t": "Link",
+          "c": [
+            [
+              {
+                "t": "Str",
+                "c": "1"
+              }
+            ],
+            [
+              "#eq:silly",
+              ""
+            ]
+          ]
+        },
+        {
+          "t": "Str",
+          "c": " and "
+        },
+        {
+          "t": "Str",
+          "c": "Figures "
+        },
+        {
+          "t": "Link",
+          "c": [
+            [
+              {
+                "t": "Str",
+                "c": "1"
+              }
+            ],
+            [
+              "#fig:attr",
+              ""
+            ]
+          ]
+        },
+        {
+          "t": "Str",
+          "c": " and "
+        },
+        {
+          "t": "Link",
+          "c": [
+            [
+              {
+                "t": "Str",
+                "c": "2"
+              }
+            ],
+            [
+              "#fig:attr2",
+              ""
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+]
