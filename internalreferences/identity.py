@@ -9,7 +9,7 @@ import pandocfilters as pf
 # terminated by a disallowed latex character or a pipe. Use a pipe
 # if you want to follow the reflink with a ':', i.e. #reflink|:
 # Multiple references are possible - #one#two#three
-imp_reflink_pattern = re.compile(r'([\s]?)#([\w:&^#]+)\|?(.*)')
+imp_reflink_pattern = re.compile(r'([\s]?)#([\w:&^#-]+)\|?(.*)')
 
 
 def isheader(key, value):
