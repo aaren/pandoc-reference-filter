@@ -154,7 +154,7 @@ class ReferenceManager(object):
         """
         if isFigure(key, value):
             self.consume_figure(key, value, format, metadata)
-        elif isheader(key, value) and format in self.formats:
+        elif isheader(key, value):
             self.consume_section(key, value, format, metadata)
         elif islabeledmath(key, value):
             self.consume_math(key, value, format, metadata)
