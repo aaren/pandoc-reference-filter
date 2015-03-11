@@ -30,8 +30,8 @@ figure_styles = {
 # that refer to various types of thing, in different
 # output formats
 latex_link = u'{pre}\\autoref{{{label}}}{post}'
-html_link = u'{pre}<a href="#{label}">{text}</a>{post}'
-markdown_link = u'{pre}[{text}](#{label}){post}'
+html_link = u'<a href="#{label}">{pre}{text}{post}</a>'
+markdown_link = u'[{pre}{text}{post}](#{label})'
 
 latex_math_link = u'{pre}\\autoref{{{label}}}{post}'
 html_math_link = u'{pre}Equation \\eqref{{{label}}}{post}'
