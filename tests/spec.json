@@ -438,13 +438,25 @@
       "t": "Para",
       "c": [
         {
-          "t": "Math",
+          "t": "Span",
           "c": [
-            {
-              "t": "DisplayMath",
-              "c": []
-            },
-            "\n2 + 2 = 5\n\\label{eq:silly}\n"
+            [
+              "#eq:silly",
+              [],
+              []
+            ],
+            [
+              {
+                "t": "Math",
+                "c": [
+                  {
+                    "t": "DisplayMath",
+                    "c": []
+                  },
+                  "\n2 + 2 = 5\n\\label{eq:silly}\n"
+                ]
+              }
+            ]
           ]
         }
       ]

@@ -26,30 +26,4 @@ figure_styles = {
                   '</div>\n')
 }
 
-# replacement text to use for in text internal links
-# that refer to various types of thing, in different
-# output formats
-latex_link = u'{pre}\\autoref{{{label}}}{post}'
-html_link = u'<a href="#{label}">{pre}{text}{post}</a>'
-markdown_link = u'[{pre}{text}{post}](#{label})'
-
-latex_math_link = u'{pre}\\autoref{{{label}}}{post}'
-html_math_link = u'{pre}Equation \\eqref{{{label}}}{post}'
-markdown_math_link = u'{pre}Equation $\\eqref{{{label}}}${post}'
-
 latex_multi_link = u'\\cref{{{labels}}}{post}'
-
-link_styles = {
-    'latex': {'figure': latex_link,
-              'section': latex_link,
-              'math': latex_math_link},
-    'html': {'figure': html_link,
-             'section': html_link,
-             'math': html_math_link},
-    'html5': {'figure': html_link,
-              'section': html_link,
-              'math': html_math_link},
-    'markdown': {'figure': markdown_link,
-                 'section': markdown_link,
-                 'math': markdown_math_link}
-}

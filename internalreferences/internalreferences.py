@@ -6,7 +6,7 @@ import pandocfilters as pf
 from pandocattributes import PandocAttributes
 
 from .identity import *
-from .styles import *
+from .styles import figure_styles, latex_multi_link
 
 
 def RawInline(format, string):
@@ -117,15 +117,27 @@ class ReferenceManager(object):
     equation_count = 0
     references = {}
 
-    replacements = {'figure': 'Figure {}',
-                    'section': 'Section {}',
-                    'math': 'Equation {}'}
-
-    multi_replacements = {'figure': 'Figures ',
-                          'section': 'Sections ',
-                          'math': 'Equations '}
-
     formats = ('html', 'html5', 'markdown', 'latex')
+
+    def __init__(self, autoref=True):
+        if autoref:
+            self.replacements = {'figure': 'Figure {}',
+                                 'section': 'Section {}',
+                                 'math': 'Equation {}'}
+
+            self.multi_replacements = {'figure': 'Figures ',
+                                       'section': 'Sections ',
+                                       'math': 'Equations '}
+        elif not autoref:
+            self.replacements = {'figure': '{}',
+                                 'section': '{}',
+                                 'math': '{}'}
+
+            self.multi_replacements = {'figure': '',
+                                       'section': '',
+                                       'math': ''}
+
+        self.autoref = autoref
 
     def increment_section_count(self, header_level):
         """Changing the section count is dependent on the header level.
@@ -282,12 +294,22 @@ class ReferenceManager(object):
             return pf.Header(level, attr, pretext + text)
 
     def math_replacement(self, key, value, format, metadata):
-        """Math should not need replacing as mathjax / latex will
-        take care of any references.
+        """Create our own links to equations instead of relying on
+        mathjax.
 
         http://meta.math.stackexchange.com/questions/3764/equation-and-equation-is-the-same-for-me
         """
-        return
+        mathtype, math = value
+        label = re.findall(r'\label{(.*)}', math)[-1]
+
+        attr = PandocAttributes()
+        attr.id = '#' + label
+
+        if format == 'latex':
+            return pf.RawInline('latex', '\[{}\]'.format(math))
+
+        else:
+            return pf.Span(attr.to_pandoc(), [pf.Math(mathtype, math)])
 
     def create_internal_refs(self, key, value, format, metadata):
         """Convert #label in the text into InternalRef, but only if the
@@ -330,16 +352,24 @@ class ReferenceManager(object):
 
         label = citation['citationId']
 
+        if label not in self.references:
+            return
+
         rtype = self.references[label]['type']
         n = self.references[label]['id']
         text = self.replacements[rtype].format(n)
 
-        if format in self.formats:
-            link = link_styles[format][rtype].format(text=text,
-                                                     label=label,
-                                                     pre=prefix,
-                                                     post=suffix)
-            return RawInline(format, link)
+        if format == 'latex' and self.autoref:
+            link = u'{pre}\\autoref{{{label}}}{post}'.format(pre=prefix,
+                                                             label=label,
+                                                             post=suffix)
+            return pf.RawInline('latex', link)
+
+        elif format == 'latex' and not self.autoref:
+            link = u'{pre}\\ref{{{label}}}{post}'.format(pre=prefix,
+                                                         label=label,
+                                                         post=suffix)
+            return pf.RawInline('latex', link)
 
         else:
             link_text = '{}{}{}'.format(prefix, text, suffix)
@@ -429,8 +459,23 @@ def toJSONFilter(actions):
 
 
 def main():
-    refmanager = ReferenceManager()
-    toJSONFilter(refmanager.reference_filter)
+    doc = pf.json.loads(pf.sys.stdin.read())
+    if len(pf.sys.argv) > 1:
+        format = pf.sys.argv[1]
+    else:
+        format = ""
+
+    metadata = doc[0]['unMeta']
+    args = {k: v['c'] for k, v in metadata.items()}
+    autoref = args.get('autoref', True)
+
+    refmanager = ReferenceManager(autoref=autoref)
+
+    altered = doc
+    for action in refmanager.reference_filter:
+        altered = pf.walk(altered, action, format, metadata)
+
+    pf.json.dump(altered, pf.sys.stdout)
 
 
 if __name__ == '__main__':
