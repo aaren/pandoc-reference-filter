@@ -166,7 +166,7 @@ class ReferenceManager(object):
         """
         if isFigure(key, value):
             return self.figure_replacement(key, value, format, metadata)
-        elif isheader(key, value) and format in self.formats:
+        elif isheader(key, value):
             return self.section_replacement(key, value, format, metadata)
         elif islabeledmath(key, value):
             return self.math_replacement(key, value, format, metadata)
