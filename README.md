@@ -10,7 +10,7 @@ markdown.
 This allows you to write something like this:
 
 ```markdown
-Look at #fig:thing.
+Look at @fig:thing.
 
 ![some caption](image.png){#fig:thing}
 ```
