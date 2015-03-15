@@ -154,7 +154,7 @@ class ReferenceManager(object):
         """
         if isFigure(key, value):
             self.consume_figure(key, value, format, metadata)
-        elif isheader(key, value) and format in self.formats:
+        elif isheader(key, value):
             self.consume_section(key, value, format, metadata)
         elif islabeledmath(key, value):
             self.consume_math(key, value, format, metadata)
@@ -166,7 +166,7 @@ class ReferenceManager(object):
         """
         if isFigure(key, value):
             return self.figure_replacement(key, value, format, metadata)
-        elif isheader(key, value) and format in self.formats:
+        elif isheader(key, value):
             return self.section_replacement(key, value, format, metadata)
         elif islabeledmath(key, value):
             return self.math_replacement(key, value, format, metadata)
@@ -311,14 +311,24 @@ class ReferenceManager(object):
         """Convert all internal links from '#blah' into format
         specified in self.replacements.
         """
-        if key not in ('InternalRef' 'MultiInternalRef'):
+        if key != 'Cite':
             return None
 
-        elif key == 'MultiInternalRef':
+        citations, inlines = value
+
+        if len(citations) > 1:
             return self.convert_multiref(key, value, format, metadata)
 
         else:
-            pre, label, post = value
+            citation = citations[0]
+
+        prefix = pf.stringify(citation['citationPrefix'])
+        suffix = pf.stringify(citation['citationSuffix'])
+
+        if prefix:
+            prefix += ' '
+
+        label = citation['citationId']
 
         rtype = self.references[label]['type']
         n = self.references[label]['id']
@@ -327,26 +337,26 @@ class ReferenceManager(object):
         if format in self.formats:
             link = link_styles[format][rtype].format(text=text,
                                                      label=label,
-                                                     pre=pre,
-                                                     post=post)
+                                                     pre=prefix,
+                                                     post=suffix)
             return RawInline(format, link)
 
         else:
-            link = pf.Link([pf.Str(text)], ('#' + label, ''))
-            return [pf.Str(pre), link, pf.Str(post)]
+            link_text = '{}{}{}'.format(prefix, text, suffix)
+            link = pf.Link([pf.Str(link_text)], ('#' + label, ''))
+            return link
 
     def convert_multiref(self, key, value, format, metadata):
         """Convert all internal links from '#blah' into format
         specified in self.replacements.
         """
-        if key != 'MultiInternalRef':
-            return
+        citations, inlines = value
 
-        pre, labels, post = value
+        labels = [citation['citationId'] for citation in citations]
 
         if format == 'latex':
-            link = latex_multi_link.format(pre=pre,
-                                           post=post,
+            link = latex_multi_link.format(pre='',
+                                           post='',
                                            labels=','.join(labels))
             return RawInline('latex', link)
 
@@ -377,7 +387,6 @@ class ReferenceManager(object):
         return [create_figures,
                 self.consume_references,
                 self.replace_references,
-                self.create_internal_refs,
                 self.convert_internal_refs]
 
 
