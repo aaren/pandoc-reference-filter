@@ -26,4 +26,4 @@ figure_styles = {
                   '</div>\n')
 }
 
-latex_multi_link = u'\\cref{{{labels}}}{post}'
+latex_multi_autolink = u'\\cref{{{labels}}}{post}'

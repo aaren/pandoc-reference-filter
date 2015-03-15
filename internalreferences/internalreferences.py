@@ -6,7 +6,7 @@ import pandocfilters as pf
 from pandocattributes import PandocAttributes
 
 from .identity import *
-from .styles import figure_styles, latex_multi_link
+from .styles import figure_styles, latex_multi_autolink
 
 
 def RawInline(format, string):
@@ -47,7 +47,12 @@ def create_pandoc_multilink(strings, refs):
     return join_items(links)
 
 
-def join_items(items, method='append'):
+def create_latex_multilink(labels):
+    links = ['\\ref{{{label}}}'.format(label=label) for label in labels]
+    return join_items(links, call=str)
+
+
+def join_items(items, method='append', call=pf.Str):
     """Join the list of items together in the format
 
     'item[0]' if len(items) == 1
@@ -65,10 +70,10 @@ def join_items(items, method='append'):
         return out
 
     for item in items[1: -1]:
-        out.append(pf.Str(', '))
+        out.append(call(', '))
         join_to_out(item)
 
-    out.append(pf.Str(' and '))
+    out.append(call(' and '))
     join_to_out(items[-1])
 
     return out
@@ -384,10 +389,14 @@ class ReferenceManager(object):
 
         labels = [citation['citationId'] for citation in citations]
 
-        if format == 'latex':
-            link = latex_multi_link.format(pre='',
+        if format == 'latex' and self.autoref:
+            link = latex_multi_autolink.format(pre='',
                                            post='',
                                            labels=','.join(labels))
+            return RawInline('latex', link)
+
+        elif format == 'latex' and not self.autoref:
+            link = ''.join(create_latex_multilink(labels))
             return RawInline('latex', link)
 
         else:
