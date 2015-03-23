@@ -2,6 +2,12 @@ This pandoc filter implements an internal reference manager for
 pandoc, making it possible to reference images and sections that
 have attribute tags.
 
+This filter uses the same `@` syntax as citations, with priority
+given to internal references if there is a key clash.
+
+This filter allows both `\ref` and `\autoref` referencing styles to
+be used, toggled with a metadata switch.
+
 Supported output formats are latex, html, html5 and markdown. The
 markdown output format can be used to convert
 markdown-with-figure-attributes into currently valid pandoc
