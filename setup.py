@@ -5,7 +5,7 @@ setup(
     name="pandoc-internal-references",
     version='0.4',
     description="Image attributes and internal referencing in markdown",
-    packages=['internalreferences'],
+    py_modules=['internalreferences'],
     author="Aaron O'Leary",
     author_email='dev@aaren.me',
     license='BSD 2-Clause',
