@@ -15,6 +15,6 @@
 `[figure @ref(a)]`| [figure @ref(a)]
 
 
-![caption](image.png){#ref}
+![caption](){#ref}
 
-![caption](image.png){#ref2}
+![caption](){#ref2}

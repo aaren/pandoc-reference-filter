@@ -15,6 +15,6 @@
 `[see @ref(a)]`| [see Figure 1(a)](#ref)
 
 
-![caption](image.png){#ref}
+![caption](){#ref}
 
-![caption](image.png){#ref2}
+![caption](){#ref2}
