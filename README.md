@@ -2,7 +2,7 @@ This pandoc filter implements an internal reference manager for
 pandoc, making it possible to reference images and sections that
 have attribute tags.
 
-This filter uses the same `@` syntax as citations, with priority
+**This filter uses the same `@` syntax as citations**, with priority
 given to internal references if there is a key clash.
 
 This filter allows both `\ref` and `\autoref` referencing styles to
