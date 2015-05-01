@@ -44,3 +44,6 @@ Figures [1](#fig:attr) and [2](#fig:attr2)
 
 Or to multiple things of mixed type:
 Section [0.1](#sec:expt), Equation [1](#eq:silly) and Figures [1](#fig:attr) and [2](#fig:attr2)
+
+But if there are any missing keys, nothing will happen:
+[@fig:attr; @fig:idontexist]

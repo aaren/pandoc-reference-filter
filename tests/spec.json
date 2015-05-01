@@ -825,6 +825,134 @@
           ]
         }
       ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "But"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "if"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "there"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "are"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "any"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "missing"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "keys,"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "nothing"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "will"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Str",
+          "c": "happen:"
+        },
+        {
+          "t": "Space",
+          "c": []
+        },
+        {
+          "t": "Cite",
+          "c": [
+            [
+              {
+                "citationSuffix": [],
+                "citationNoteNum": 0,
+                "citationMode": {
+                  "t": "NormalCitation",
+                  "c": []
+                },
+                "citationPrefix": [],
+                "citationId": "fig:attr",
+                "citationHash": 0
+              },
+              {
+                "citationSuffix": [],
+                "citationNoteNum": 0,
+                "citationMode": {
+                  "t": "NormalCitation",
+                  "c": []
+                },
+                "citationPrefix": [],
+                "citationId": "fig:idontexist",
+                "citationHash": 0
+              }
+            ],
+            [
+              {
+                "t": "Str",
+                "c": "[@fig:attr;"
+              },
+              {
+                "t": "Space",
+                "c": []
+              },
+              {
+                "t": "Str",
+                "c": "@fig:idontexist]"
+              }
+            ]
+          ]
+        }
+      ]
     }
   ]
 ]

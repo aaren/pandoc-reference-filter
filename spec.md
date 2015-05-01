@@ -30,3 +30,6 @@ We can refer to multiple things of the same type: [@fig:attr; @fig:attr2]
 
 Or to multiple things of mixed type: [@fig:attr; @fig:attr2;
 @sec:expt; @eq:silly]
+
+But if there are any missing keys, nothing will happen: [@fig:attr;
+@fig:idontexist]

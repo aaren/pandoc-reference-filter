@@ -54,3 +54,6 @@ We can refer to multiple things of the same type:
 
 Or to multiple things of mixed type:
 \cref{fig:attr,fig:attr2,sec:expt,eq:silly}
+
+But if there are any missing keys, nothing will happen: {[}@fig:attr;
+@fig:idontexist{]}
