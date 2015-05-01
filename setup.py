@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="pandoc-internal-references",
-    version='0.5',
+    version='0.5.1',
     description="Image attributes and internal referencing in markdown",
     py_modules=['internalreferences'],
     author="Aaron O'Leary",
