@@ -376,6 +376,14 @@ class ReferenceManager(object):
         citations, inlines = value
 
         if len(citations) > 1:
+            '''
+            Note: Need to check that *all* of the citations in a
+            multicitation are in the reference list. If not, the citation
+            is bibliographic, and we want LaTeX to handle it, so just
+            return unmodified.
+            '''
+            for citation in citations:
+                if citation['citationId'] not in self.references: return
             return self.convert_multiref(key, value, format, metadata)
 
         else:
