@@ -340,7 +340,7 @@ class ReferenceManager(object):
             pretext = ''
         else:
             ref = self.references[label]
-            pretext = '{}: '.format(ref['id'])
+            pretext = '{}. '.format(ref['id'])
 
         pretext = [pf.Str(pretext)]
 
