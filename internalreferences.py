@@ -41,18 +41,24 @@ Figure = pf.elt('Figure', 3)  # caption, target, attrs
 
 
 def isfigure(key, value):
-    return (key == 'Para' and len(value) == 2 and value[0]['t'] == 'Image')
+    try:
+        return (key == 'Para' and len(value) == 2 and value[0]['t'] == 'Image')
+    except IndexError: return False
 
 
 def isattrfigure(key, value):
-    return (key == 'Para'
-            and value[0]['t'] == 'Image'
-            and isattr(pf.stringify(value[1:])))
+    try:
+        return (key == 'Para'
+                and value[0]['t'] == 'Image'
+                and isattr(pf.stringify(value[1:])))
+    except IndexError: return False
 
 
 def isdivfigure(key, value):
     """Matches images contained in a Div with 'figure' as a class."""
-    return (key == 'Div' and 'figure' in value[0][1])
+    try: 
+        return (key == 'Div' and 'figure' in value[0][1])
+    except IndexError: return False
 
 
 def isFigure(key, value):
