@@ -362,7 +362,7 @@ class ReferenceManager(object):
         attr.id = '#' + label
 
         if format == 'latex':
-            return pf.RawInline('latex', '\[{}\]'.format(math))
+            return pf.Math(mathtype, math)
 
         else:
             return pf.Span(attr.to_pandoc(), [pf.Math(mathtype, math)])
