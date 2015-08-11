@@ -411,7 +411,7 @@ class ReferenceManager(object):
         text = self.replacements[rtype].format(n)
 
         if format == 'latex' and self.autoref:
-            link = u'{pre}\\autoref{{{label}}}{post}'.format(pre=prefix,
+            link = u'{pre}\\cref{{{label}}}{post}'.format(pre=prefix,
                                                              label=label,
                                                              post=suffix)
             return pf.RawInline('latex', link)
