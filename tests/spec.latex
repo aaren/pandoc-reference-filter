@@ -5,7 +5,7 @@
 \begin{figure}[htbp]
 \centering
 \includegraphics{image.png}
-\caption{a figure that can be referred to (ˈjuːnɪˌkəʊd!)}
+\caption[link text]{a figure that can be referred to (ˈjuːnɪˌkəʊd!)}
 \label{fig:attr}
 \end{figure}
 
@@ -18,14 +18,14 @@ Here is reference to the section called \autoref{sec:expt}.
 \begin{figure}[htbp]
 \centering
 \includegraphics{image.png}
-\caption{another figure that can be referred to (ˈjuːnɪˌkəʊd!)}
+\caption[fig:link text]{another figure that can be referred to (ˈjuːnɪˌkəʊd!)}
 \label{fig:attr2}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics{image.png}
-\caption{figure with no attr (ˈjuːnɪˌkəʊd!)}
+\caption{figure with no attr and no link text (ˈjuːnɪˌkəʊd!)}
 \end{figure}
 
 Here is \autoref{eq:silly}:
@@ -42,7 +42,7 @@ Here is \autoref{eq:silly}:
 \begin{figure}[htbp]
 \centering
 \includegraphics{image.png}
-\caption*{no numbering here (ˈjuːnɪˌkəʊd!)}
+\caption*[link text]{no numbering here (ˈjuːnɪˌkəʊd!)}
 \label{fig:nonum}
 \end{figure}
 

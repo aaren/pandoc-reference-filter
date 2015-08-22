@@ -1,29 +1,26 @@
 <h2 id="sec:expt" class="class1 class2" key="value">0.1: Experiments with pandoc figures (ˈjuːnɪˌkəʊd!)</h2>
 
 <div id="fig:attr" class="figure class1 class2" key=value>
-<img src="image.png" alt="Figure 1: a figure that can be referred to (ˈjuːnɪˌkəʊd!)" /><p class="caption">Figure 1: a figure that can be referred to (ˈjuːnɪˌkəʊd!)</p>
+<img src="image.png" title = "link text" alt="Figure 1: a figure that can be referred to (ˈjuːnɪˌkəʊd!)" /><p class="caption">Figure 1: a figure that can be referred to (ˈjuːnɪˌkəʊd!)</p>
 </div>
 
 <p>Here is a reference to <a href="#fig:attr">Figure 1</a> and here is one to <a href="#fig:attr2">Figure 2</a>.</p>
 <p>Here is reference to the section called <a href="#sec:expt">Section 0.1</a>.</p>
 
 <div id="fig:attr2" class="figure">
-<img src="image.png" alt="Figure 2: another figure that can be referred to (ˈjuːnɪˌkəʊd!)" /><p class="caption">Figure 2: another figure that can be referred to (ˈjuːnɪˌkəʊd!)</p>
+<img src="image.png" title = "fig:link text" alt="Figure 2: another figure that can be referred to (ˈjuːnɪˌkəʊd!)" /><p class="caption">Figure 2: another figure that can be referred to (ˈjuːnɪˌkəʊd!)</p>
 </div>
 
 <div class="figure">
-<img src="image.png" alt="figure with no attr (ˈjuːnɪˌkəʊd!)" />
-<p class="caption">figure with no attr (ˈjuːnɪˌkəʊd!)</p>
+<img src="image.png" alt="figure with no attr and no link text (ˈjuːnɪˌkəʊd!)" />
+<p class="caption">figure with no attr and no link text (ˈjuːnɪˌkəʊd!)</p>
 </div>
 <p>Here is <a href="#eq:silly">Equation 1</a>:</p>
-<p><span id="#eq:silly"><span class="math display">\[
-2 + 2 = 5
-\label{eq:silly}
-\]</span></span></p>
+<p><span id="#eq:silly"><br /><span class="math display">2 + 2 = 5</span><br /></span></p>
 <h2 id="unnumbered-section" class="unnumbered">Unnumbered Section</h2>
 
 <div id="fig:nonum" class="figure unnumbered">
-<img src="image.png" alt="no numbering here (ˈjuːnɪˌkəʊd!)" /><p class="caption">no numbering here (ˈjuːnɪˌkəʊd!)</p>
+<img src="image.png" title = "link text" alt="no numbering here (ˈjuːnɪˌkəʊd!)" /><p class="caption">no numbering here (ˈjuːnɪˌkəʊd!)</p>
 </div>
 
 <h2 id="multiple-references" class="unnumbered">Multiple references</h2>
