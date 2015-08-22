@@ -150,25 +150,25 @@ class ReferenceManager(object):
                    '\\begin{{figure}}[htbp]\n'
                    '\\centering\n'
                    '\\includegraphics{{{filename}}}\n'
-                   '\\caption{star}{{{caption}}}\n'
+                   '\\caption{star}[{target}]{{{caption}}}\n'
                    '\\label{{{attr.id}}}\n'
                    '\\end{{figure}}\n'),
 
         'html': (u'\n'
                   '<div {attr.html}>\n'
-                  '<img src="{filename}" alt="{alt}" />'
+                  '<img src="{filename}" title = "{target}" alt="{alt}" />'
                   '<p class="caption">{fcaption}</p>\n'
                   '</div>\n'),
 
         'html5': (u'\n'
                    '<figure {attr.html}>\n'
-                   '<img src="{filename}" alt="{alt}" />\n'
+                   '<img src="{filename}" title = "{target}" alt="{alt}" />\n'
                    '<figcaption>{fcaption}</figcaption>\n'
                    '</figure>\n'),
 
         'markdown': (u'\n'
                       '<div {attr.html}>\n'
-                      '![{fcaption}]({filename})\n'
+                      '![{fcaption}]({filename} "{target}")\n'
                       '\n'
                       '</div>\n')}
 
@@ -320,6 +320,7 @@ class ReferenceManager(object):
                                                        alt=fcaption,
                                                        fcaption=fcaption,
                                                        caption=caption,
+                                                       target=target,
                                                        star=star).encode('utf-8')
 
             return RawBlock(format, figure)
