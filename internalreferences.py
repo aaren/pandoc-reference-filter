@@ -290,7 +290,7 @@ class ReferenceManager(object):
         """
         _caption, (filename, target), attrs = value
         caption = pf.stringify(_caption)
-        if target: target = '[' + target + ']'
+        if target and format == 'latex': target = '[' + target + ']'
 
         attr = PandocAttributes(attrs)
 
