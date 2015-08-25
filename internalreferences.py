@@ -150,7 +150,7 @@ class ReferenceManager(object):
                    '\\begin{{figure}}[htbp]\n'
                    '\\centering\n'
                    '\\includegraphics{{{filename}}}\n'
-                   '\\caption{star}[{target}]{{{caption}}}\n'
+                   '\\caption{star}{target}{{{caption}}}\n'
                    '\\label{{{attr.id}}}\n'
                    '\\end{{figure}}\n'),
 
@@ -296,11 +296,13 @@ class ReferenceManager(object):
         """
         _caption, (filename, target), attrs = value
         caption = pf.stringify(_caption)
+        if target and format == 'latex': target = '[' + target + ']'
 
         attr = PandocAttributes(attrs)
 
         if 'unnumbered' in attr.classes:
             star = '*'
+            if format == 'latex': target = '' # Senseless to have short caption if unnumbered
             fcaption = caption
         else:
             ref = self.references[attr.id]
