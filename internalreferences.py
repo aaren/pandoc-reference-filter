@@ -145,10 +145,10 @@ def latex_figure(attr, filename, caption, alt):
     endText = (u'}}\n'
                '\\label{{{attr.id}}}\n'
                '\\end{{figure}}\n'.format(attr=attr))
-    star = False
-    if 'unnumbered' in attr.classes:
-        beginText += '\\caption*{'
-        star = True
+
+    if 'unnumbered' in attr.classes: star = True
+    else: star = False
+    
     if alt and not star:
         shortCaption = toFormat(alt, 'latex')
         beginText += '\\caption['
@@ -158,7 +158,7 @@ def latex_figure(attr, filename, caption, alt):
     else: # No short caption
         if star: beginText += '\\caption*{'
         else: beginText += '\\caption{'
-        latexFigure = [RawInline('latex', beginText + '{')]
+        latexFigure = [RawInline('latex', beginText)]
 
     latexFigure += caption
     latexFigure += [RawInline('latex', endText)]
