@@ -335,7 +335,6 @@ class ReferenceManager(object):
         """
         caption, (filename, alt), attrs = value
         if format == 'latex': alt = toFormat(str(alt), format)  # Preserve formatting
-#        else: alt = pf.stringify(alt)
 
         attr = PandocAttributes(attrs)
 
@@ -343,11 +342,10 @@ class ReferenceManager(object):
             fcaption = caption
         else:
             ref = self.references[attr.id]
-            star = ''
             if caption:
-                fcaption = [pf.Str(u'Figure {n}: '.format(n=ref['id']))] + caption
+                fcaption = [pf.Str('Figure'), pf.Space(), pf.Str(str(ref['id'])+ ':'), pf.Space()] + caption
             else:
-                fcaption = [pf.Str(u'Figure {n}'.format(n=ref['id']))]
+                fcaption = [pf.Str('Figure'), pf.Space(), pf.Str(str(ref['id']))]
 
         if 'figure' not in attr.classes:
             attr.classes.insert(0, 'figure')
@@ -357,12 +355,8 @@ class ReferenceManager(object):
         elif format == 'html5': return html5_figure(attr, filename, fcaption, alt)
         elif format == 'markdown': return markdown_figure(attr, filename, fcaption, alt)
         else:
-#            # FIXME: docx export fails to include the caption!
-#            fcaption = pf.stringify(fcaption)
-#            fcaption = [pf.Str(str(caption))]
-            image = pf.Image(fcaption, [filename, ''])
-            return pf.Plain([image])
-#            return pf.Para([image])
+            image = pf.Image(fcaption, [filename, 'fig:'])
+            return pf.Para([image])
 
     def section_replacement(self, key, value, format, metadata):
         """Replace sections with appropriate representation.
