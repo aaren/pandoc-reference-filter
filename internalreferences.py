@@ -170,6 +170,8 @@ class ReferenceManager(object):
 
     section_count = [0, 0, 0, 0, 0, 0]
     figure_count = 0
+    fig_replacement_count = 0
+    auto_fig_id = '___fig___[{}]'.format
     equation_count = 0
     references = {}
 
@@ -248,6 +250,7 @@ class ReferenceManager(object):
             return
         else:
             self.figure_count += 1
+            id = id or self.auto_fig_id(self.figure_count)
             self.references[id] = {'type': 'figure',
                                    'id': self.figure_count,
                                    'label': id}
@@ -297,6 +300,10 @@ class ReferenceManager(object):
             star = '*'
             fcaption = caption
         else:
+            self.fig_replacement_count += 1
+            if not attr.id:
+                attr.id = self.auto_fig_id(self.fig_replacement_count)
+
             ref = self.references[attr.id]
             star = ''
             if caption:
