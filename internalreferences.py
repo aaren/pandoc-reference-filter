@@ -29,8 +29,10 @@ def isheader(key, value):
     return (key == 'Header')
 
 
+math_label = r'\\label{(.*?)}'
+
 def islabeledmath(key, value):
-    return (key == 'Math' and re.search(r'\\label{\S*}', value[1]))
+    return (key == 'Math' and re.search(math_label, value[1]))
 
 
 def isattr(string):
@@ -277,7 +279,7 @@ class ReferenceManager(object):
         """
         self.equation_count += 1
         mathtype, math = value
-        label, = re.search(r'\\label{([\w:&^]+)}', math).groups()
+        label, = re.search(math_label, math).groups()
         self.references[label] = {'type': 'math',
                                   'id': self.equation_count,
                                   'label': label}
@@ -363,7 +365,7 @@ class ReferenceManager(object):
         http://meta.math.stackexchange.com/questions/3764/equation-and-equation-is-the-same-for-me
         """
         mathtype, math = value
-        label = re.findall(r'\label{(.*)}', math)[-1]
+        label = re.findall(math_label, math)[-1]
 
         attr = PandocAttributes()
         attr.id = '#' + label
