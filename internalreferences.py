@@ -177,7 +177,7 @@ class ReferenceManager(object):
 
     formats = ('html', 'html5', 'markdown', 'latex')
 
-    def __init__(self, autoref=True):
+    def __init__(self, autoref=True, numbersections=True):
         if autoref:
             self.replacements = {'figure': 'Figure {}',
                                  'section': 'Section {}',
@@ -196,6 +196,7 @@ class ReferenceManager(object):
                                        'math': ''}
 
         self.autoref = autoref
+        self.numbersections = numbersections
 
     def increment_section_count(self, header_level):
         """Changing the section count is dependent on the header level.
@@ -262,7 +263,7 @@ class ReferenceManager(object):
         level, attr, text = value
         label, classes, kvs = attr
 
-        if 'unnumbered' in classes:
+        if 'unnumbered' in classes or self.numbersections == False:
             return
         else:
             self.increment_section_count(level)
@@ -338,7 +339,7 @@ class ReferenceManager(object):
         level, attr, text = value
         label, classes, kvs = attr
 
-        if 'unnumbered' in classes:
+        if 'unnumbered' in classes or self.numbersections == False:
             pretext = ''
         else:
             ref = self.references[label]
@@ -525,8 +526,9 @@ def main():
     metadata = doc[0]['unMeta']
     args = {k: v['c'] for k, v in metadata.items()}
     autoref = args.get('autoref', True)
+    numbersections = args.get('numbersections', True)
 
-    refmanager = ReferenceManager(autoref=autoref)
+    refmanager = ReferenceManager(autoref=autoref, numbersections=numbersections)
 
     altered = doc
     for action in refmanager.reference_filter:
