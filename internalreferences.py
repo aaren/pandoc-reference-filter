@@ -30,8 +30,10 @@ def isheader(key, value):
     return (key == 'Header')
 
 
+math_label = r'\\label{(.*?)}'
+
 def islabeledmath(key, value):
-    return (key == 'Math' and re.search(r'\\label{\S*}', value[1]))
+    return (key == 'Math' and re.search(math_label, value[1]))
 
 
 def isattr(string):
@@ -221,6 +223,8 @@ class ReferenceManager(object):
 
     section_count = [0, 0, 0, 0, 0, 0]
     figure_count = 0
+    fig_replacement_count = 0
+    auto_fig_id = '___fig___[{}]'.format
     equation_count = 0
     references = {}
 
@@ -299,6 +303,7 @@ class ReferenceManager(object):
             return
         else:
             self.figure_count += 1
+            id = id or self.auto_fig_id(self.figure_count)
             self.references[id] = {'type': 'figure',
                                    'id': self.figure_count,
                                    'label': id}
@@ -325,7 +330,7 @@ class ReferenceManager(object):
         """
         self.equation_count += 1
         mathtype, math = value
-        label, = re.search(r'\\label{([\w:&^]+)}', math).groups()
+        label, = re.search(math_label, math).groups()
         self.references[label] = {'type': 'math',
                                   'id': self.equation_count,
                                   'label': label}
@@ -347,6 +352,10 @@ class ReferenceManager(object):
         if 'unnumbered' in attr.classes:
             fcaption = caption
         else:
+            self.fig_replacement_count += 1
+            if not attr.id:
+                attr.id = self.auto_fig_id(self.fig_replacement_count)
+
             ref = self.references[attr.id]
             if caption:
                 fcaption = [pf.Str('Figure'), pf.Space(), pf.Str(str(ref['id'])+ ':'), pf.Space()] + caption
@@ -395,7 +404,7 @@ class ReferenceManager(object):
         http://meta.math.stackexchange.com/questions/3764/equation-and-equation-is-the-same-for-me
         """
         mathtype, math = value
-        label = re.findall(r'\label{(.*)}', math)[-1]
+        label = re.findall(math_label, math)[-1]
 
         attr = PandocAttributes()
         attr.id = '#' + label
