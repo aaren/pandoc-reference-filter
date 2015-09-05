@@ -136,10 +136,10 @@ def create_figures(key, value, format, metadata):
     else:
         return None
 
-def toFormat(string, format):
+def toFormat(string, fromThis, toThis):
     # Process string through pandoc to get formatted string. Is there a better way?
     p1 = Popen(['echo'] + string.split(), stdout=PIPE)
-    p2 = Popen(['pandoc', '-t', format], stdin=p1.stdout, stdout=PIPE)
+    p2 = Popen(['pandoc', '-f', fromThis, '-t', toThis], stdin=p1.stdout, stdout=PIPE)
     p1.stdout.close()
     return p2.communicate()[0].strip('\n')
 
@@ -158,7 +158,7 @@ def latex_figure(attr, filename, caption, alt):
     else: star = False
     
     if alt and not star:
-        shortCaption = toFormat(alt, 'latex')
+        shortCaption = toFormat(alt, 'markdown', 'latex')
         beginText += '\\caption['
         latexFigure = [RawInline('latex', beginText)]
         latexFigure += [RawInline('latex', shortCaption + ']{')] 
@@ -345,7 +345,6 @@ class ReferenceManager(object):
         from the caption of an Image and use that to update the references.
         """
         caption, (filename, alt), attrs = value
-        if format == 'latex': alt = toFormat(str(alt), format)  # Preserve formatting
 
         attr = PandocAttributes(attrs)
 
