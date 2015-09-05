@@ -196,14 +196,10 @@ def latex_table(caption, alignment, size, headers, rows, id, classes, kvs):
     finally insert the LaTeX snippet into the document as a RawBlock. Surely
     there's a better way.
     """
-    jsonCaption = [{'unMeta':{}}] + [[pf.Para(caption)]]
-    jsonCaption = str(jsonCaption).replace("u'", "'").replace("'", '"')
-    latexCaption = toFormat(jsonCaption, 'json', 'latex').replace('\\', '\\\\')
-    jsonTableContents = [[pf.Str('REPLACE')], alignment, size, headers, rows]
+    jsonTableContents = [caption, alignment, size, headers, rows]
     jsonTable = [{'unMeta':{}}, [{"t":"Table", "c":jsonTableContents}]]
     jsonTable = str(jsonTable).replace("u'", "'").replace("'", '"')
     latexTable = toFormat(jsonTable, 'json', 'latex')
-    latexTable = re.sub(r'\\caption\{REPLACE\}', '\\caption{' + latexCaption + '}', latexTable, 1)
     latexTable = re.sub(r'\\end\{longtable\}', '\\label{' + id + '}\n\\end{longtable}', latexTable, 1)
     return RawBlock('latex', latexTable)
 
