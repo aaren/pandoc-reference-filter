@@ -45,12 +45,6 @@ Figure = pf.elt('Figure', 3)  # caption, target, attrs
 TableAttrs = pf.elt('TableAttrs', 6) # caption, alignment, size, headers, rows, attrs
 
 
-def isfigure(key, value):
-    try:
-        return (key == 'Para' and len(value) == 2 and value[0]['t'] == 'Image')
-    except IndexError: return False
-
-
 def isattrfigure(key, value):
     try:
         return (key == 'Para'
@@ -76,14 +70,15 @@ def isTableAttrs(key, value):
 
 def tableattrCaption(captionList):
     orig = captionList
-    caption = []
-    attrs = ''
     try:
         if not captionList[-1]['c'].endswith('}'):
             return captionList, None
-    except IndexError: return captionList, None
-    attrs += captionList.pop()['c']
-    if attrs.startswith('{'): return captionList[:-1], attrs.strip('{}')
+    except IndexError:
+        return captionList, None
+    attrs = captionList.pop()['c']
+    if attrs.startswith('{'): 
+        if attrs == '{-}': attrs = '.unnumbered'
+        return captionList[:-1], attrs.strip('{}')
     while True:
         try:
             a = captionList.pop()
@@ -244,8 +239,7 @@ def create_tableattrs(key, value, format, metadata):
     
     TableAttrs are [caption, alignment, size, headers, rows, attrs]
     
-    Like Figures, this isn't supported pandoc type but only used
-    internally.
+    Like Figures, this isn't supported pandoc type but only used internally.
     """
     if key == 'Table':
         captionList, alignment, size, headers, rows = value
@@ -270,7 +264,12 @@ def latex_table(caption, alignment, size, headers, rows, id, classes, kvs):
     jsonTable = [{'unMeta':{}}, [{"t":"Table", "c":jsonTableContents}]]
     jsonTable = str(jsonTable).replace("u'", "'").replace("'", '"')
     latexTable = toFormat(jsonTable, 'json', 'latex')
-    latexTable = re.sub(r'\\end\{longtable\}', '\\label{' + id + '}\n\\end{longtable}', latexTable, 1)
+    if 'unnumbered' in classes:
+        latexTable = latexTable.replace('\\caption{', '\\caption*{', 1)
+    else:
+        if caption == []: #There's no caption: we need to add a blank one
+            latexTable = latexTable.replace('\\toprule', '\\caption{}\\tabularnewline\n\\toprule', 1)
+        latexTable = latexTable.replace('\\end{longtable}', '\\label{' + id + '}\n\\end{longtable}', 1)
     return RawBlock('latex', latexTable)
 
 
@@ -291,10 +290,12 @@ class ReferenceManager(object):
     section_count = [0, 0, 0, 0, 0, 0]
     figure_count = 0
     fig_replacement_count = 0
+    figure_exists = False
     auto_fig_id = '___fig___[{}]'.format
     equation_count = 0
     table_count = 0
     table_replacement_count = 0
+    table_exists = False
     auto_table_id = '___tab___[{}]'.format
     references = {}
 
@@ -350,8 +351,10 @@ class ReferenceManager(object):
         and append reference information to the reference state.
         """
         if isFigure(key, value):
+            self.figure_exists = True
             self.consume_figure(key, value, format, metadata)
         elif isTableAttrs(key, value):
+            self.table_exists = True
             self.consume_tableattr(key, value, format, metadata)
         elif isheader(key, value):
             self.consume_section(key, value, format, metadata)
@@ -680,6 +683,15 @@ def main():
     altered = doc
     for action in refmanager.reference_filter:
         altered = pf.walk(altered, action, format, metadata)
+    
+    # Need to ensure the LaTeX template knows about figures and tables 
+    # by adding to metadata (only if it's not already specified).
+    if format == 'latex':
+        if refmanager.table_exists and 'tables' not in metadata: 
+            metadata['tables'] = pf.elt('MetaBool', 1)(True)
+        if refmanager.figure_exists and 'graphics' not in metadata:
+            metadata['graphics'] = pf.elt('MetaBool', 1)(True)
+        altered[0]['unMeta'] = metadata
 
     pf.json.dump(altered, pf.sys.stdout)
 
