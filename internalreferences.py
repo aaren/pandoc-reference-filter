@@ -133,7 +133,7 @@ def toFormat(string, fromThis, toThis):
     p1 = Popen(['echo'] + string.split(), stdout=PIPE)
     p2 = Popen(['pandoc', '-f', fromThis, '-t', toThis], stdin=p1.stdout, stdout=PIPE)
     p1.stdout.close()
-    return p2.communicate()[0].strip('\n')
+    return p2.communicate()[0].decode('utf-8').strip('\n')
 
 def latex_figure(attr, filename, caption, alt):
     beginText = (u'\n'
