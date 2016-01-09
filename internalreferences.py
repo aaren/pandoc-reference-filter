@@ -183,8 +183,8 @@ def latex_figure(attr, filename, caption, alt):
         latexCaption = '\n\\caption[{}]{{'.format(shortCaption)
     
     else: # No short caption
-        if star: latexCaption = '\\caption*{{'
-        else: latexCaption = '\\caption{{'
+        if star: latexCaption = '\\caption*{'
+        else: latexCaption = '\\caption{'
     
     latexFigure = [RawInline('latex', beginText)]
     latexFigure += image
