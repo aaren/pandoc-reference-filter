@@ -45,11 +45,9 @@ Figure = pf.elt('Figure', 3)  # caption, target, attrs
 TableAttrs = pf.elt('TableAttrs', 6) # caption, alignment, size, headers, rows, attrs
 
 
-def isattrfigure(key, value):
+def isParaFigure(key, value):
     try:
-        return (key == 'Para'
-                and value[0]['t'] == 'Image'
-                and isattr(pf.stringify(value[1:])))
+        return (key == 'Para' and value[0]['t'] == 'Image')
     except IndexError: return False
 
 
@@ -96,7 +94,7 @@ def tableattrCaption(captionList):
 def create_pandoc_multilink(strings, refs):
     inlines = [[pf.Str(str(s))] for s in strings]
     targets = [(r, "") for r in refs]
-    links = [pf.Link(inline, target)
+    links = [pf.Link(['',[],[]], inline, target)
              for inline, target in zip(inlines, targets)]
 
     return join_items(links)
@@ -137,24 +135,23 @@ def join_items(items, method='append', call=pf.Str):
 def create_figures(key, value, format, metadata):
     """Convert Images with attributes to Figures.
 
-    Images are [caption, (filename, title)].
+    Images are [attrs, caption, (filename, title)].
 
     Figures are [caption, (filename, title), attrs].
 
     This isn't a supported pandoc type, we just use it internally.
     """
-    if isattrfigure(key, value):
-        image = value[0] # E.g.: {"t":"Image","c":[[{"t":"Str","c":"CAPTION"}],["FIGURE.JPG","TITLE"]]}
-        attr = PandocAttributes(pf.stringify(value[1:]), 'markdown') # E.g.: {"t":"Str","c":"{#REFERENCE}"}
-        caption, target = image['c'] # E.g.: caption = [{"t":"Str","c":"CAPTION"}]; target = ["FIGURE.JPG","TITLE"]
-        return Figure(caption, target, attr.to_pandoc()) # E.g.: {"t":"Figure", "c":[[{"t":"Str","c":"CAPTION"}],["FIGURE.JPG","TITLE"],"{#REFERENCE}"]}
+    if isParaFigure(key, value):
+        image = value[0] # E.g.: {"t":"Image","c":[["LABEL",["class1","class2"],[["key1","value1"],["key2","value2"]]],[{"t":"Str","c":"CAPTION"}],["FIGURE.JPG","alt text"]]}
+        attr, caption, target = image['c']
+        return Figure(caption, target, attr)
 
     elif isdivfigure(key, value):
         # use the first image inside
         attr, blocks = value
         images = [b['c'][0] for b in blocks if b['c'][0]['t'] == 'Image']
         image = images[0]
-        caption, target = image['c']
+        imageAttr, caption, target = image['c']
         return Figure(caption, target, attr)
 
     else:
@@ -169,66 +166,62 @@ def toFormat(string, fromThis, toThis):
 
 def latex_figure(attr, filename, caption, alt):
     beginText = (u'\n'
-               '\\begin{{figure}}[htbp]\n'
-               '\\centering\n'
-               '\\includegraphics{{{filename}}}\n'.format(
-                                           filename=filename
-                                           ).encode('utf-8'))
+               '\\begin{figure}[htbp]\n'
+               '\\centering\n')
     endText = (u'}}\n'
-               '\\label{{{attr.id}}}\n'
-               '\\end{{figure}}\n'.format(attr=attr))
+               '\\label{{{id}}}\n'
+               '\\end{{figure}}\n'.format(id=attr[0]))
 
-    if 'unnumbered' in attr.classes: star = True
+    image = [pf.Image(attr, caption, (filename, alt))]
+
+    if 'unnumbered' in attr[1]: star = True
     else: star = False
     
     if alt and not star:
+        if alt.startswith('fig:'): alt = alt[4:] # Not sure why pandoc adds this prefix, but we want to strip it for short captions.
         shortCaption = toFormat(alt, 'markdown', 'latex')
-        beginText += '\\caption['
-        latexFigure = [RawInline('latex', beginText)]
-        latexFigure += [RawInline('latex', shortCaption + ']{')] 
+        latexCaption = '\n\\caption[{}]{{'.format(shortCaption)
     
     else: # No short caption
-        if star: beginText += '\\caption*{'
-        else: beginText += '\\caption{'
-        latexFigure = [RawInline('latex', beginText)]
-
+        if star: latexCaption = '\\caption*{{'
+        else: latexCaption = '\\caption{{'
+    
+    latexFigure = [RawInline('latex', beginText)]
+    latexFigure += image
+    latexFigure += [RawInline('latex', latexCaption)]
     latexFigure += caption
     latexFigure += [RawInline('latex', endText)]
     return pf.Para(latexFigure)
 
+    return pf.Para([
+        RawInline('latex', beginText),
+        image,
+        RawInline('latex', latexCaption),
+        caption,
+        RawInline('latex', endText)
+    ])
+
+
 def html_figure(attr, filename, fcaption, alt):
-    beginText = (u'\n'
-                  '<div {attr.html}>\n'
-                  '<img src="{filename}" alt="{alt}" />\n'
-                  '<p class="caption">').format(attr=attr,
-                                                filename=filename,
-                                                alt=alt)
-    endText = (u'</p>\n'
-                '</div>\n')
-    htmlFigure = [RawInline('html', beginText)]
-    htmlFigure += fcaption
-    htmlFigure += [RawInline('html', endText)]
+    beginText = [RawInline('html', '\n<div class="figure">\n')] # FIXME: Should I move some or all classes from the image into the `<div>`?
+    image = [pf.Image(attr, fcaption, (filename, alt))]
+    captionStart = [RawInline('html', '<p class="caption">')]
+    endText = [RawInline('html', '</p>\n</div>\n')]
+    
+    htmlFigure = beginText + image + captionStart + fcaption + endText
     return pf.Plain(htmlFigure)
 
 def html5_figure(attr, filename, fcaption, alt):
-    beginText = (u'\n'
-                   '<figure {attr.html}>\n'
-                   '<img src="{filename}" alt="{alt}" />\n'
-                   '<figcaption>').format(attr=attr,
-                                          filename=filename,
-                                          alt=alt)
-    endText = u'</figcaption>\n</figure>\n'
-    htmlFigure = [RawInline('html5', beginText)]
-    htmlFigure += fcaption
-    htmlFigure += [RawInline('html5', endText)]
+    beginText = [RawInline('html', '\n<figure class="figure">\n')] # FIXME: Should I move some or all classes from the image into the `<figure>`?
+    image = [pf.Image(attr, fcaption, (filename, alt))]
+    captionStart = [RawInline('html', '\n<figcaption>\n')]
+    endText = [RawInline('html', '\n</figcaption>\n</figure>\n')]
+
+    htmlFigure = beginText + image + captionStart + fcaption + endText
     return pf.Plain(htmlFigure)
 
 def markdown_figure(attr, filename, fcaption, alt):
-    beginText = u'<div {attr.html}>'.format(attr=attr)
-    endText = u'</div>'
-    markdownFigure = [pf.Para([pf.RawInline('html', beginText)])]
-    markdownFigure += [pf.Para([pf.Image(fcaption, (filename,alt))])]
-    markdownFigure += [pf.Para([pf.RawInline('html', endText)])]
+    markdownFigure = [pf.Para([pf.Image(attr, fcaption, (filename, alt))])]
     return markdownFigure
 
 
@@ -276,7 +269,7 @@ def latex_table(caption, alignment, size, headers, rows, id, classes, kvs):
 class ReferenceManager(object):
     """Internal reference manager.
 
-    Stores all referencable objects in the document, with a label
+    Stores all referenceable objects in the document, with a label
     and a type, then allows us to look up the object and type using
     a label.
 
@@ -437,32 +430,30 @@ class ReferenceManager(object):
         The other way of doing it would be to pull out a '\label{(.*)}'
         from the caption of an Image and use that to update the references.
         """
-        caption, (filename, alt), attrs = value
+        caption, (filename, alt), attr = value
 
-        attr = PandocAttributes(attrs)
-
-        if 'unnumbered' in attr.classes:
+        if 'unnumbered' in attr[1]:
             fcaption = caption
         else:
             self.fig_replacement_count += 1
-            if not attr.id:
-                attr.id = self.auto_fig_id(self.fig_replacement_count)
+            if not attr[0]:
+                attr[0] = self.auto_fig_id(self.fig_replacement_count)
 
-            ref = self.references[attr.id]
+            ref = self.references[attr[0]]
             if caption:
                 fcaption = [pf.Str('Figure'), pf.Space(), pf.Str(str(ref['id'])+ ':'), pf.Space()] + caption
             else:
                 fcaption = [pf.Str('Figure'), pf.Space(), pf.Str(str(ref['id']))]
 
-        if 'figure' not in attr.classes:
-            attr.classes.insert(0, 'figure')
+#        if 'figure' not in attr[1]:    #FIXME: Currently adding this in html_figure() and html5_figure()
+#            attr[1].append('figure')
         
         if format == 'latex': return latex_figure(attr, filename, caption, alt)
         elif format == 'html': return html_figure(attr, filename, fcaption, alt)
         elif format == 'html5': return html5_figure(attr, filename, fcaption, alt)
         elif format == 'markdown': return markdown_figure(attr, filename, fcaption, alt)
         else:
-            image = pf.Image(fcaption, [filename, 'fig:'])
+            image = pf.Image(attr, fcaption, (filename, alt))
             return pf.Para([image])
     
     def tableattrs_replacement(self, key, value, format, metadata):
@@ -568,7 +559,7 @@ class ReferenceManager(object):
         rtype = self.references[label]['type']
         n = self.references[label]['id']
         text = self.replacements[rtype].format(n)
-
+        
         if format == 'latex' and self.autoref:
             link = pf.RawInline('latex', '\\cref{{{label}}}'.format(label=label))
             return prefix + [link] + suffix
@@ -578,7 +569,7 @@ class ReferenceManager(object):
             return prefix + [link] + suffix
 
         else:
-            link = pf.Link([pf.Str(text)], ('#' + label, ''))
+            link = pf.Link(["",[],[]], [pf.Str(text)], ('#' + label, ''))
             return prefix + [link] + suffix
 
     def convert_multiref(self, key, value, format, metadata):
