@@ -7,18 +7,18 @@ python:
   - 3.5
 
 env:
-  matrix:
+  global:
     - PEP=false
+  matrix:
+    - PANDOC=1.17
 
 matrix:
   include:
     - python: 2.7
       env: PEP=true
 
-addons:
-  apt:
-    packages:
-      - pandoc
+before_install:
+  - if ! $PEP; then source .travis.install_pandoc.sh; fi
 
 install:
   - pip install pep8
