@@ -31,7 +31,7 @@ def call_pandoc(format):
                   '--to', format)
     p = subprocess.Popen(pandoc_cmd, stdout=subprocess.PIPE)
     stdout, stderr = p.communicate()
-    return stdout
+    return stdout.decode()
 
 
 def _test(format):
