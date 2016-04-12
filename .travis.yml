@@ -15,6 +15,11 @@ matrix:
     - python: 2.7
       env: PEP=true
 
+addons:
+  apt:
+    packages:
+      - pandoc
+
 install:
   - pip install pep8
   - pip install .
