@@ -1,0 +1,24 @@
+language: python
+
+sudo: no
+
+python:
+  - 2.7
+  - 3.5
+
+env:
+  matrix:
+    - PEP=false
+
+matrix:
+  include:
+    - python: 2.7
+      env: PEP=true
+
+install:
+  - pip install pep8
+  - pip install .
+
+script:
+  - if $PEP; then pep8 internalreferences.py; fi
+  - if ! $PEP; then nosetests; fi
