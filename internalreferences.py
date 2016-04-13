@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import re
 from collections import OrderedDict
+from subprocess import Popen, PIPE
 
 import pandocfilters as pf
 
@@ -113,10 +114,10 @@ def create_figures(key, value, format, metadata):
     This isn't a supported pandoc type, we just use it internally.
     """
     if isattrfigure(key, value):
-        image = value[0]
-        attr = PandocAttributes(pf.stringify(value[1:]), 'markdown')
-        caption, target = image['c']
-        return Figure(caption, target, attr.to_pandoc())
+        image = value[0] # E.g.: {"t":"Image","c":[[{"t":"Str","c":"CAPTION"}],["FIGURE.JPG","TITLE"]]}
+        attr = PandocAttributes(pf.stringify(value[1:]), 'markdown') # E.g.: {"t":"Str","c":"{#REFERENCE}"}
+        caption, target = image['c'] # E.g.: caption = [{"t":"Str","c":"CAPTION"}]; target = ["FIGURE.JPG","TITLE"]
+        return Figure(caption, target, attr.to_pandoc()) # E.g.: {"t":"Figure", "c":[[{"t":"Str","c":"CAPTION"}],["FIGURE.JPG","TITLE"],"{#REFERENCE}"]}
 
     elif isdivfigure(key, value):
         # use the first image inside
@@ -129,6 +130,76 @@ def create_figures(key, value, format, metadata):
     else:
         return None
 
+def toFormat(string, fromThis, toThis):
+    # Process string through pandoc to get formatted string. Is there a better way?
+    p1 = Popen(['echo'] + string.split(), stdout=PIPE)
+    p2 = Popen(['pandoc', '-f', fromThis, '-t', toThis], stdin=p1.stdout, stdout=PIPE)
+    p1.stdout.close()
+    return p2.communicate()[0].decode('utf-8').strip('\n')
+
+def latex_figure(attr, filename, caption, alt):
+    beginText = (u'\n'
+               '\\begin{{figure}}[htbp]\n'
+               '\\centering\n'
+               '\\includegraphics{{{filename}}}\n'.format(
+                                           filename=filename
+                                           ).encode('utf-8'))
+    endText = (u'}}\n'
+               '\\label{{{attr.id}}}\n'
+               '\\end{{figure}}\n'.format(attr=attr))
+
+    if 'unnumbered' in attr.classes: star = True
+    else: star = False
+    
+    if alt and not star:
+        shortCaption = toFormat(alt, 'markdown', 'latex')
+        beginText += '\\caption['
+        latexFigure = [RawInline('latex', beginText)]
+        latexFigure += [RawInline('latex', shortCaption + ']{')] 
+    
+    else: # No short caption
+        if star: beginText += '\\caption*{'
+        else: beginText += '\\caption{'
+        latexFigure = [RawInline('latex', beginText)]
+
+    latexFigure += caption
+    latexFigure += [RawInline('latex', endText)]
+    return pf.Para(latexFigure)
+
+def html_figure(attr, filename, fcaption, alt):
+    beginText = (u'\n'
+                  '<div {attr.html}>\n'
+                  '<img src="{filename}" alt="{alt}" />\n'
+                  '<p class="caption">').format(attr=attr,
+                                                filename=filename,
+                                                alt=alt)
+    endText = (u'</p>\n'
+                '</div>\n')
+    htmlFigure = [RawInline('html', beginText)]
+    htmlFigure += fcaption
+    htmlFigure += [RawInline('html', endText)]
+    return pf.Plain(htmlFigure)
+
+def html5_figure(attr, filename, fcaption, alt):
+    beginText = (u'\n'
+                   '<figure {attr.html}>\n'
+                   '<img src="{filename}" alt="{alt}" />\n'
+                   '<figcaption>').format(attr=attr,
+                                          filename=filename,
+                                          alt=alt)
+    endText = u'</figcaption>\n</figure>\n'
+    htmlFigure = [RawInline('html5', beginText)]
+    htmlFigure += fcaption
+    htmlFigure += [RawInline('html5', endText)]
+    return pf.Plain(htmlFigure)
+
+def markdown_figure(attr, filename, fcaption, alt):
+    beginText = u'<div {attr.html}>'.format(attr=attr)
+    endText = u'</div>'
+    markdownFigure = [pf.Para([pf.RawInline('html', beginText)])]
+    markdownFigure += [pf.Para([pf.Image(fcaption, (filename,alt))])]
+    markdownFigure += [pf.Para([pf.RawInline('html', endText)])]
+    return markdownFigure
 
 class ReferenceManager(object):
     """Internal reference manager.
@@ -141,32 +212,6 @@ class ReferenceManager(object):
     text of any given internal reference (no need for e.g. 'fig:' at
     the start of labels).
     """
-    figure_styles = {
-        'latex': (u'\n'
-                   '\\begin{{figure}}[htbp]\n'
-                   '\\centering\n'
-                   '\\includegraphics{{{filename}}}\n'
-                   '\\caption{star}{{{caption}}}\n'
-                   '\\label{{{attr.id}}}\n'
-                   '\\end{{figure}}\n'),
-
-        'html': (u'\n'
-                  '<div {attr.html}>\n'
-                  '<img src="{filename}" alt="{alt}" />'
-                  '<p class="caption">{fcaption}</p>\n'
-                  '</div>\n'),
-
-        'html5': (u'\n'
-                   '<figure {attr.html}>\n'
-                   '<img src="{filename}" alt="{alt}" />\n'
-                   '<figcaption>{fcaption}</figcaption>\n'
-                   '</figure>\n'),
-
-        'markdown': (u'\n'
-                      '<div {attr.html}>\n'
-                      '![{fcaption}]({filename})\n'
-                      '\n'
-                      '</div>\n')}
 
     latex_multi_autolink = u'\\cref{{{labels}}}{post}'
 
@@ -247,7 +292,7 @@ class ReferenceManager(object):
         """If the key, value represents a figure, append reference
         data to internal state.
         """
-        _caption, (filename, target), (id, classes, kvs) = value
+        _caption, (filename, alt), (id, classes, kvs) = value
         if 'unnumbered' in classes:
             return
         else:
@@ -283,7 +328,7 @@ class ReferenceManager(object):
         self.references[label] = {'type': 'math',
                                   'id': self.equation_count,
                                   'label': label}
-
+        
     def figure_replacement(self, key, value, format, metadata):
         """Replace figures with appropriate representation.
 
@@ -293,13 +338,11 @@ class ReferenceManager(object):
         The other way of doing it would be to pull out a '\label{(.*)}'
         from the caption of an Image and use that to update the references.
         """
-        _caption, (filename, target), attrs = value
-        caption = pf.stringify(_caption)
+        caption, (filename, alt), attrs = value
 
         attr = PandocAttributes(attrs)
 
         if 'unnumbered' in attr.classes:
-            star = '*'
             fcaption = caption
         else:
             self.fig_replacement_count += 1
@@ -307,32 +350,21 @@ class ReferenceManager(object):
                 attr.id = self.auto_fig_id(self.fig_replacement_count)
 
             ref = self.references[attr.id]
-            star = ''
             if caption:
-                fcaption = u'Figure {n}: {caption}'.format(n=ref['id'],
-                                                           caption=caption)
+                fcaption = [pf.Str('Figure'), pf.Space(), pf.Str(str(ref['id'])+ ':'), pf.Space()] + caption
             else:
-                fcaption = u'Figure {n}'.format(n=ref['id'])
+                fcaption = [pf.Str('Figure'), pf.Space(), pf.Str(str(ref['id']))]
 
         if 'figure' not in attr.classes:
             attr.classes.insert(0, 'figure')
-
-        if format in self.formats:
-            figure = self.figure_styles[format].format(attr=attr,
-                                                       filename=filename,
-                                                       alt=fcaption,
-                                                       fcaption=fcaption,
-                                                       caption=caption,
-                                                       star=star).encode('utf-8')
-
-            return RawBlock(format, figure)
-
+        
+        if format == 'latex': return latex_figure(attr, filename, caption, alt)
+        elif format == 'html': return html_figure(attr, filename, fcaption, alt)
+        elif format == 'html5': return html5_figure(attr, filename, fcaption, alt)
+        elif format == 'markdown': return markdown_figure(attr, filename, fcaption, alt)
         else:
-            alt = [pf.Str(fcaption)]
-            target = (filename, '')
-            image = pf.Image(alt, target)
-            figure = pf.Para([image])
-            return pf.Div(attr.to_pandoc(), [figure])
+            image = pf.Image(fcaption, [filename, 'fig:'])
+            return pf.Para([image])
 
     def section_replacement(self, key, value, format, metadata):
         """Replace sections with appropriate representation.
@@ -399,11 +431,9 @@ class ReferenceManager(object):
         else:
             citation = citations[0]
 
-        prefix = pf.stringify(citation['citationPrefix'])
-        suffix = pf.stringify(citation['citationSuffix'])
-
-        if prefix:
-            prefix += ' '
+        prefix = citation['citationPrefix'] + [pf.Space()]
+        suffix = citation['citationSuffix']
+        
 
         label = citation['citationId']
 
@@ -415,21 +445,16 @@ class ReferenceManager(object):
         text = self.replacements[rtype].format(n)
 
         if format == 'latex' and self.autoref:
-            link = u'{pre}\\autoref{{{label}}}{post}'.format(pre=prefix,
-                                                             label=label,
-                                                             post=suffix)
-            return pf.RawInline('latex', link)
+            link = pf.RawInline('latex', '\\autoref{{{label}}}'.format(label=label))
+            return prefix + [link] + suffix
 
         elif format == 'latex' and not self.autoref:
-            link = u'{pre}\\ref{{{label}}}{post}'.format(pre=prefix,
-                                                         label=label,
-                                                         post=suffix)
-            return pf.RawInline('latex', link)
+            link = pf.RawInline('latex', '\\ref{{{label}}}'.format(label=label))
+            return prefix + [link] + suffix
 
         else:
-            link_text = '{}{}{}'.format(prefix, text, suffix)
-            link = pf.Link([pf.Str(link_text)], ('#' + label, ''))
-            return link
+            link = pf.Link([pf.Str(text)], ('#' + label, ''))
+            return prefix + [link] + suffix
 
     def convert_multiref(self, key, value, format, metadata):
         """Convert all internal links from '#blah' into format
