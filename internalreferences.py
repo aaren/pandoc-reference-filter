@@ -545,9 +545,9 @@ class ReferenceManager(object):
         else:
             citation = citations[0]
 
-        prefix = citation['citationPrefix'] + [pf.Space()]
+        prefix = citation['citationPrefix']
+        if prefix: prefix += [pf.Space()]
         suffix = citation['citationSuffix']
-        
 
         label = citation['citationId']
 
