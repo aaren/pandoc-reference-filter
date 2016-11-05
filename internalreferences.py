@@ -254,13 +254,14 @@ def latex_table(caption, alignment, size, headers, rows, id, classes, kvs):
     there's a better way.
     """
     jsonTableContents = [caption, alignment, size, headers, rows]
-    jsonTable = [{'unMeta':{}}, [{"t":"Table", "c":jsonTableContents}]]
+    jsonTable = {"pandoc-api-version": [1,17,0,4], "meta": {},
+                 "blocks": [{"t": "Table", "c": jsonTableContents}]}
     jsonTable = str(jsonTable).replace("u'", "'").replace("'", '"')
     latexTable = toFormat(jsonTable, 'json', 'latex')
     if 'unnumbered' in classes:
         latexTable = latexTable.replace('\\caption{', '\\caption*{', 1)
     else:
-        if caption == []: #There's no caption: we need to add a blank one
+        if caption == []:  # There's no caption: we need to add a blank one
             latexTable = latexTable.replace('\\toprule', '\\caption{}\\tabularnewline\n\\toprule', 1)
         latexTable = latexTable.replace('\\end{longtable}', '\\label{' + id + '}\n\\end{longtable}', 1)
     return RawBlock('latex', latexTable)
@@ -647,12 +648,17 @@ def toJSONFilter(actions):
     else:
         format = ""
 
+    if 'meta' in doc:
+        metadata = doc['meta']
+    elif doc[0]:  # old API
+        metadata = doc[0]['unMeta']
+
     if type(actions) is type(toJSONFilter):
-        altered = pf.walk(doc, actions, format, doc[0]['unMeta'])
+        altered = pf.walk(doc, actions, format, metadata)
     elif type(actions) is list:
         altered = doc
         for action in actions:
-            altered = pf.walk(altered, action, format, doc[0]['unMeta'])
+            altered = pf.walk(altered, action, format, metadata)
 
     pf.json.dump(altered, pf.sys.stdout)
 
@@ -664,7 +670,11 @@ def main():
     else:
         format = ""
 
-    metadata = doc[0]['unMeta']
+    if 'meta' in doc:
+        metadata = doc['meta']
+    elif doc[0]:  # old API
+        metadata = doc[0]['unMeta']
+
     args = {k: v['c'] for k, v in metadata.items()}
     autoref = args.get('autoref', True)
     numbersections = args.get('numbersections', True)
@@ -682,7 +692,7 @@ def main():
             metadata['tables'] = pf.elt('MetaBool', 1)(True)
         if refmanager.figure_exists and 'graphics' not in metadata:
             metadata['graphics'] = pf.elt('MetaBool', 1)(True)
-        altered[0]['unMeta'] = metadata
+        altered['meta'] = metadata
 
     pf.json.dump(altered, pf.sys.stdout)
 
