@@ -194,7 +194,7 @@ def latex_table(caption, alignment, size, headers, rows, id, classes, kvs):
     """
     jsonTableContents = [caption, alignment, size, headers, rows]
     jsonTable = [{'unMeta':{}}, [{"t":"Table", "c":jsonTableContents}]]
-    jsonTable = str(jsonTable).replace("u'", "'").replace("'", '"')
+    jsonTable = str(jsonTable).replace("'", '"')
     latexTable = toFormat(jsonTable, 'json', 'latex')
     if 'unnumbered' in classes:
         latexTable = latexTable.replace('\\caption{', '\\caption*{', 1)
