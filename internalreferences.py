@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import re
 from collections import OrderedDict
+from subprocess import Popen, PIPE
 
 import pandocfilters as pf
 
@@ -39,12 +40,9 @@ def isattr(string):
     return string.startswith('{') and string.endswith('}')
 
 
-# define a new Figure type - an image with attributes
+# define a new Figure and Table types -- with attributes
 Figure = pf.elt('Figure', 3)  # caption, target, attrs
-
-
-def isfigure(key, value):
-    return (key == 'Para' and len(value) == 2 and value[0]['t'] == 'Image')
+TableAttrs = pf.elt('TableAttrs', 6) # caption, alignment, size, headers, rows, attrs
 
 
 def isattrfigure(key, value):
@@ -60,6 +58,35 @@ def isdivfigure(key, value):
 
 def isFigure(key, value):
     return key == 'Figure'
+
+
+def isTableAttrs(key, value):
+    return key == 'TableAttrs'
+
+
+def tableattrCaption(captionList):
+    orig = captionList
+    try:
+        if not captionList[-1]['c'].endswith('}'):
+            return captionList, None
+    except IndexError:
+        return captionList, None
+    attrs = captionList.pop()['c']
+    if attrs.startswith('{'): 
+        if attrs == '{-}': attrs = '.unnumbered'
+        return captionList[:-1], attrs.strip('{}')
+    while True:
+        try:
+            a = captionList.pop()
+        except IndexError: break
+        if a['t'] == 'Space': attrs = ' ' + attrs
+        elif a['t'] == 'Str':
+             attrs = a['c'] + attrs
+             if a['c'].startswith('{'): break
+        else: return captionList, None #Improper syntax
+    if attrs:
+        return captionList, attrs.strip('{}')
+    else: return orig, None
 
 
 def create_pandoc_multilink(strings, refs):
@@ -129,6 +156,54 @@ def create_figures(key, value, format, metadata):
     else:
         return None
 
+def toFormat(string, fromThis, toThis):
+    # Process string through pandoc to get formatted string. Is there a better way?
+    p1 = Popen(['echo'] + string.split(), stdout=PIPE)
+    p2 = Popen(['pandoc', '-f', fromThis, '-t', toThis], stdin=p1.stdout, stdout=PIPE)
+    p1.stdout.close()
+    return p2.communicate()[0].strip('\n')
+
+
+def create_tableattrs(key, value, format, metadata):
+    """Convert Tables with attributes to TableAttr.
+    
+    Tables are [caption, alignment, size, headers, rows]
+    
+    TableAttrs are [caption, alignment, size, headers, rows, attrs]
+    
+    Like Figures, this isn't supported pandoc type but only used internally.
+    """
+    if key == 'Table':
+        captionList, alignment, size, headers, rows = value
+        caption, attrs = tableattrCaption(captionList)
+        if attrs:
+            attrs = PandocAttributes(attrs, 'markdown')
+            return TableAttrs(caption, alignment, size, headers, rows, attrs.to_pandoc())
+    else:
+        return None
+
+
+def latex_table(caption, alignment, size, headers, rows, id, classes, kvs):
+    """Convert to LaTeX table.
+    
+    FIXME: This is a complete hack. I construct a complete json representation
+    of the LaTeX table, send that string to pandoc to produce a LaTeX snippet,
+    modify the LaTeX snippet to alter the caption and insert a label, and 
+    finally insert the LaTeX snippet into the document as a RawBlock. Surely
+    there's a better way.
+    """
+    jsonTableContents = [caption, alignment, size, headers, rows]
+    jsonTable = [{'unMeta':{}}, [{"t":"Table", "c":jsonTableContents}]]
+    jsonTable = str(jsonTable).replace("'", '"')
+    latexTable = toFormat(jsonTable, 'json', 'latex')
+    if 'unnumbered' in classes:
+        latexTable = latexTable.replace('\\caption{', '\\caption*{', 1)
+    else:
+        if caption == []: #There's no caption: we need to add a blank one
+            latexTable = latexTable.replace('\\toprule', '\\caption{}\\tabularnewline\n\\toprule', 1)
+        latexTable = latexTable.replace('\\end{longtable}', '\\label{' + id + '}\n\\end{longtable}', 1)
+    return RawBlock('latex', latexTable)
+
 
 class ReferenceManager(object):
     """Internal reference manager.
@@ -173,8 +248,13 @@ class ReferenceManager(object):
     section_count = [0, 0, 0, 0, 0, 0]
     figure_count = 0
     fig_replacement_count = 0
+    figure_exists = False
     auto_fig_id = '___fig___[{}]'.format
     equation_count = 0
+    table_count = 0
+    table_replacement_count = 0
+    table_exists = False
+    auto_table_id = '___tab___[{}]'.format
     references = {}
 
     formats = ('html', 'html5', 'markdown', 'latex')
@@ -183,18 +263,22 @@ class ReferenceManager(object):
         if autoref:
             self.replacements = {'figure': 'Figure {}',
                                  'section': 'Section {}',
+                                 'table': 'Table {}',
                                  'math': 'Equation {}'}
 
             self.multi_replacements = {'figure': 'Figures ',
                                        'section': 'Sections ',
+                                       'table': 'Tables ',
                                        'math': 'Equations '}
         elif not autoref:
             self.replacements = {'figure': '{}',
                                  'section': '{}',
+                                 'table': '{}',
                                  'math': '{}'}
 
             self.multi_replacements = {'figure': '',
                                        'section': '',
+                                       'table': '',
                                        'math': ''}
 
         self.autoref = autoref
@@ -225,7 +309,11 @@ class ReferenceManager(object):
         and append reference information to the reference state.
         """
         if isFigure(key, value):
+            self.figure_exists = True
             self.consume_figure(key, value, format, metadata)
+        elif isTableAttrs(key, value):
+            self.table_exists = True
+            self.consume_tableattr(key, value, format, metadata)
         elif isheader(key, value):
             self.consume_section(key, value, format, metadata)
         elif islabeledmath(key, value):
@@ -238,6 +326,8 @@ class ReferenceManager(object):
         """
         if isFigure(key, value):
             return self.figure_replacement(key, value, format, metadata)
+        elif isTableAttrs(key, value):
+            return self.tableattrs_replacement(key, value, format, metadata)
         elif isheader(key, value):
             return self.section_replacement(key, value, format, metadata)
         elif islabeledmath(key, value):
@@ -255,6 +345,17 @@ class ReferenceManager(object):
             id = id or self.auto_fig_id(self.figure_count)
             self.references[id] = {'type': 'figure',
                                    'id': self.figure_count,
+                                   'label': id}
+    
+    def consume_tableattr(self, key, value, format, metadata):
+        caption, alignment, size, headers, rows, (id, classes, kvs) = value
+        if 'unnumbered' in classes:
+            return
+        else:
+            self.table_count += 1
+            id = id or self.auto_table_id(self.table_count)
+            self.references[id] = {'type': 'table',
+                                   'id': self.table_count,
                                    'label': id}
 
     def consume_section(self, key, value, format, metadata):
@@ -333,6 +434,32 @@ class ReferenceManager(object):
             image = pf.Image(alt, target)
             figure = pf.Para([image])
             return pf.Div(attr.to_pandoc(), [figure])
+    
+    def tableattrs_replacement(self, key, value, format, metadata):
+        """Replace TableAttrs with appropriate representation.
+        
+        TableAttrs is our special type for tables with attributes,
+        allowing us to set an id in the attributes.
+        """
+        caption, alignment, size, headers, rows, (id, classes, kvs) = value
+        
+        if 'unnumbered' in classes:
+            fcaption = caption
+        else:
+            self.table_replacement_count += 1
+            if not id:
+                id = self.auto_table_id(self.table_replacement_count)
+            
+            ref = self.references[id]
+            if caption:
+                fcaption = [pf.Str('Table'), pf.Space(), pf.Str(str(ref['id']) + ':'), pf.Space()] + caption
+            else:
+                fcaption = [pf.Str('Table'), pf.Space(), pf.Str(str(ref['id']))]
+        
+        if format == 'latex': 
+            return latex_table(caption, alignment, size, headers, rows, id, classes, kvs)
+        else:
+            return pf.Div([id, classes, kvs], [pf.Table(fcaption, alignment, size, headers, rows)])
 
     def section_replacement(self, key, value, format, metadata):
         """Replace sections with appropriate representation.
@@ -474,6 +601,7 @@ class ReferenceManager(object):
     @property
     def reference_filter(self):
         return [create_figures,
+                create_tableattrs,
                 self.consume_references,
                 self.replace_references,
                 self.convert_internal_refs]
@@ -533,6 +661,15 @@ def main():
     altered = doc
     for action in refmanager.reference_filter:
         altered = pf.walk(altered, action, format, metadata)
+    
+    # Need to ensure the LaTeX template knows about figures and tables 
+    # by adding to metadata (only if it's not already specified).
+    if format == 'latex':
+        if refmanager.table_exists and 'tables' not in metadata: 
+            metadata['tables'] = pf.elt('MetaBool', 1)(True)
+        if refmanager.figure_exists and 'graphics' not in metadata:
+            metadata['graphics'] = pf.elt('MetaBool', 1)(True)
+        altered[0]['unMeta'] = metadata
 
     pf.json.dump(altered, pf.sys.stdout)
 
