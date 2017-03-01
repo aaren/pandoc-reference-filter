@@ -18,7 +18,7 @@ This allows you to write something like this:
 ```markdown
 Look at @fig:thing.
 
-![some caption](image.png){#fig:thing}
+![some caption](image.png "link text"){#fig:thing}
 ```
 
 and get this markdown:
@@ -27,7 +27,7 @@ and get this markdown:
 Look at [Figure 1](#fig:thing).
 
 <div id='#fig:thing' class='figure'>
-![Figure 1: some caption](image.png)
+![Figure 1: some caption](image.png "link text")
 
 </div>
 ```
@@ -40,7 +40,7 @@ Look at \autoref{fig:thing}.
 \begin{figure}[htbp]
 \centering
 \includegraphics{image.png}
-\caption{some caption}
+\caption[link text]{some caption}
 \label{fig:thing}
 \end{figure}
 ```
@@ -51,7 +51,7 @@ or this html:
 <p>Look at <a href="#fig:thing">Figure 1</a>.</p>
 
 <div class="figure" id="fig:thing">
-<img src="image.png" alt="some caption" />
+<img src="image.png" title = "link text" alt="some caption" />
 <p class="caption">Figure 1: some caption</p>
 </div>
 ```
