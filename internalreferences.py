@@ -593,14 +593,15 @@ class ReferenceManager(object):
             citation = citations[0]
 
         prefix = citation['citationPrefix']
-        if prefix:
-            prefix += [pf.Space()]
         suffix = citation['citationSuffix']
 
         label = citation['citationId']
 
         if label not in self.references:
             return
+
+        if prefix:
+            prefix += [pf.Space()]
 
         rtype = self.references[label]['type']
         n = self.references[label]['id']
