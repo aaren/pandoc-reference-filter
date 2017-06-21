@@ -173,6 +173,7 @@ class ReferenceManager(object):
     section_count = [0, 0, 0, 0, 0, 0]
     figure_count = 0
     fig_replacement_count = 0
+    figure_exists = False
     auto_fig_id = '___fig___[{}]'.format
     equation_count = 0
     references = {}
@@ -225,6 +226,7 @@ class ReferenceManager(object):
         and append reference information to the reference state.
         """
         if isFigure(key, value):
+            self.figure_exists = True
             self.consume_figure(key, value, format, metadata)
         elif isheader(key, value):
             self.consume_section(key, value, format, metadata)
@@ -351,7 +353,7 @@ class ReferenceManager(object):
         if format in ('html', 'html5', 'markdown'):
             return pf.Header(level, attr, pretext + text)
 
-        elif format == 'latex':
+        elif format == 'latex' or format == 'beamer':
             # have to do this to get rid of hyperref
             return pf.Header(level, attr, text)
 
@@ -370,7 +372,7 @@ class ReferenceManager(object):
         attr = PandocAttributes()
         attr.id = '#' + label
 
-        if format == 'latex':
+        if format == 'latex' or format == 'beamer':
             return pf.Math(mathtype, math)
 
         else:
@@ -414,13 +416,13 @@ class ReferenceManager(object):
         n = self.references[label]['id']
         text = self.replacements[rtype].format(n)
 
-        if format == 'latex' and self.autoref:
-            link = u'{pre}\\autoref{{{label}}}{post}'.format(pre=prefix,
+        if format == ['latex', 'beamer'] and self.autoref:
+            link = u'{pre}\\cref{{{label}}}{post}'.format(pre=prefix,
                                                              label=label,
                                                              post=suffix)
             return pf.RawInline('latex', link)
 
-        elif format == 'latex' and not self.autoref:
+        elif format == ['latex', 'beamer'] and not self.autoref:
             link = u'{pre}\\ref{{{label}}}{post}'.format(pre=prefix,
                                                          label=label,
                                                          post=suffix)
@@ -439,13 +441,13 @@ class ReferenceManager(object):
 
         labels = [citation['citationId'] for citation in citations]
 
-        if format == 'latex' and self.autoref:
+        if format in ['latex', 'beamer'] and self.autoref:
             link = self.latex_multi_autolink.format(pre='',
                                                     post='',
                                                     labels=','.join(labels))
             return RawInline('latex', link)
 
-        elif format == 'latex' and not self.autoref:
+        elif format in ['latex', 'beamer'] and not self.autoref:
             link = ''.join(create_latex_multilink(labels))
             return RawInline('latex', link)
 
@@ -533,6 +535,15 @@ def main():
     altered = doc
     for action in refmanager.reference_filter:
         altered = pf.walk(altered, action, format, metadata)
+ 
+    # Need to ensure the LaTeX template knows about figures and tables 
+    # by adding to metadata (only if it's not already specified).
+    if format == 'latex' or format == 'beamer':
+        # if refmanager.table_exists and 'tables' not in metadata: 
+        #     metadata['tables'] = pf.elt('MetaBool', 1)(True)
+        if refmanager.figure_exists and 'graphics' not in metadata:
+            metadata['graphics'] = pf.elt('MetaBool', 1)(True)
+        altered[0]['unMeta'] = metadata
 
     pf.json.dump(altered, pf.sys.stdout)
 
