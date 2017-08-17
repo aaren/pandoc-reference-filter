@@ -353,7 +353,7 @@ class ReferenceManager(object):
         if format in ('html', 'html5', 'markdown'):
             return pf.Header(level, attr, pretext + text)
 
-        elif format == 'latex' or format == 'beamer':
+        elif format in ['latex', 'beamer']:
             # have to do this to get rid of hyperref
             return pf.Header(level, attr, text)
 
@@ -372,7 +372,7 @@ class ReferenceManager(object):
         attr = PandocAttributes()
         attr.id = '#' + label
 
-        if format == 'latex' or format == 'beamer':
+        if format in ['latex', 'beamer']:
             return pf.Math(mathtype, math)
 
         else:
@@ -416,13 +416,13 @@ class ReferenceManager(object):
         n = self.references[label]['id']
         text = self.replacements[rtype].format(n)
 
-        if format == ['latex', 'beamer'] and self.autoref:
+        if format in ['latex', 'beamer'] and self.autoref:
             link = u'{pre}\\cref{{{label}}}{post}'.format(pre=prefix,
                                                              label=label,
                                                              post=suffix)
             return pf.RawInline('latex', link)
 
-        elif format == ['latex', 'beamer'] and not self.autoref:
+        elif format in ['latex', 'beamer'] and not self.autoref:
             link = u'{pre}\\ref{{{label}}}{post}'.format(pre=prefix,
                                                          label=label,
                                                          post=suffix)
@@ -538,7 +538,7 @@ def main():
  
     # Need to ensure the LaTeX template knows about figures and tables 
     # by adding to metadata (only if it's not already specified).
-    if format == 'latex' or format == 'beamer':
+    if format in ['latex', 'beamer']:
         # if refmanager.table_exists and 'tables' not in metadata: 
         #     metadata['tables'] = pf.elt('MetaBool', 1)(True)
         if refmanager.figure_exists and 'graphics' not in metadata:
