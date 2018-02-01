@@ -229,10 +229,26 @@ function processFigures(para)
         end
         if FORMAT == 'latex' or FORMAT == 'beamer' then
             local shortCaption = {}
-            if #image.title > 4 then
-                -- Treat image's title as a short caption. Remove the "fig:"
-                -- pandoc inserts and run through pandoc to format...
-                shortCaption = pandoc.read(string.sub(image.title, 5)).blocks[1].c
+            if #image.caption > 0 then
+                -- There is a caption, so check for a Span with 'shortcaption'
+                -- class, and remove it from the caption.
+                local caption = {}
+                for _, inline in pairs(image.caption) do
+                    if inline.t == 'Span' and inList('shortcaption', inline.classes) then
+                        shortCaption = inline.content
+                    else
+                        table.insert(caption, inline)
+                    end
+                end
+                image.caption = caption
+            end
+            if shortCaption == {} then
+                -- If haven't already found a shortCaption, let the image's
+                -- title (if any) be the shortCaption. Remove the "fig:" pandoc
+                -- inserts and run through pandoc to format...
+                if #image.title > 4 then
+                    shortCaption = pandoc.read(string.sub(image.title, 5)).blocks[1].c
+                end
             end
             local latexCaption = '\\caption['
             if image.classes:find('unnumbered', 1) then
@@ -369,7 +385,6 @@ function processMath(equation)
                             '\\end{equation}'),
                 })
         else
-            -- return pandoc.Table({}, {'AlignCenter', 'AlignRight'}, {5,2}, {{},{}}, {{pandoc.Math('InlineMath', equation.text)}, {pandoc.Str('(' .. MATH_COUNT .. ')')}})
             return pandoc.Table(
                 {},
                 {'AlignCenter', 'AlignRight'},
@@ -441,7 +456,8 @@ function joinInlines(items)
 end
 
 function convertMultiref(citations)
-    -- Takes a list of citations and returns a list of pandoc-formatted inlines representing multi-citation (including links).
+    -- Takes a list of citations and returns a list of pandoc-formatted inlines
+    -- representing multi-citation (including links).
     -- First create a list of links
     local links = {}
     for _, citation in pairs(citations) do
