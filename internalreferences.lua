@@ -39,6 +39,8 @@ local TABLE_EXISTS = false
 local TABLE_COUNT = 0
 local MATH_ID = "___math___"      -- Default math identifier base
 local MATH_COUNT = 0
+local MATH_FORMULA_ALIGN = 'AlignCenter'  -- Alignment of math formula in table
+local MATH_LABEL_ALIGN = 'AlignRight'  -- Alignment of math label in table
 local NUMBERSECTIONS = false      -- assume user does not want numbered sections
 local AUTOREFS = true             -- assume user wants autorefs.
 local SECTION_COUNT = {0, 0, 0, 0, 0, 0}  -- keep track of current section number
@@ -352,18 +354,10 @@ function processTables(theTable)
 end
 
 function processMath(equation)
-    -- One way: use codeblocks, with 'math' class, like this:
+    -- Use codeblocks, with 'math' class, like this:
     --     ``` {.math #label}
     --     1+1=2
     --     ```
-    -- Then convert this into appropriate LaTeX math, or add a label to it for
-    -- HTML/etc.:
-    --     \begin{equation}
-    --     \label{label}
-    --     1+1=2
-    --     \end{equation}
-    -- or
-    --     <HTML>
     if inList('math', equation.classes) then
         MATH_COUNT = MATH_COUNT + 1
         local a = {pandoc.Math('DisplayMath', equation.text)}
@@ -385,24 +379,18 @@ function processMath(equation)
                             '\\end{equation}'),
                 })
         else
+            -- Return a table with a single row: equation, label. The table has
+            -- a caption with an empty span encoding the attributes to make
+            -- sure that information is not lost.
             return pandoc.Table(
-                {},
-                {'AlignCenter', 'AlignRight'},
+                {pandoc.Span({pandoc.Space()}, pandoc.Attr(equation.identifier, equation.classes, equation.attributes))},
+                {MATH_FORMULA_ALIGN, MATH_LABEL_ALIGN},
                 {.9,.1},
                 {},
                 {
                     {{pandoc.Para({pandoc.Math('DisplayMath', equation.text)})}, 
                     {pandoc.Para({pandoc.Str('(' .. MATH_COUNT .. ')')})}}
                 })
-            -- return pandoc.Para(
-            --     pandoc.Span(
-            --         {
-            --             pandoc.Math('DisplayMath', equation.text),
-            --             pandoc.Space(),
-            --             pandoc.Str('(' .. MATH_COUNT .. ')')
-            --         },
-            --         pandoc.Attr(equation.identifier, equation.classes, equation.attributes)
-            --     ))
         end
     end
 end
