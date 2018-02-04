@@ -9,27 +9,16 @@ TODO:
 
 --]]
 
-local REPLACEMENTS = {}          -- For captions and cross-references
-REPLACEMENTS.figure = "Figure "  -- Note: last character here is no-break space.
+local REPLACEMENTS = {}            -- For captions and cross-references
+REPLACEMENTS.figure = "Figure "    -- Note: last character here is no-break space.
 REPLACEMENTS.section = "Section "
 REPLACEMENTS.table = "Table "
 REPLACEMENTS.math = "Equation "
-local MULTI_REPLACEMENTS = {}    -- For multiple cross-references
-MULTI_REPLACEMENTS.figure = "Figures "  -- Note: last character here is no-break space.
+local MULTI_REPLACEMENTS = {}      -- For multiple cross-references
+MULTI_REPLACEMENTS.figure = "Figures "  -- Note: last char here is no-break space.
 MULTI_REPLACEMENTS.section = "Sections "
 MULTI_REPLACEMENTS.table = "Tables "
 MULTI_REPLACEMENTS.math = "Equations "
-local HTML_FIG = {}              -- Defining html[5] output for figures
-HTML_FIG.html = {}
-HTML_FIG.html.fig_open = '<div class="figure">'
-HTML_FIG.html.fig_close = '</div>'
-HTML_FIG.html.caption_open = '<p class="caption">'
-HTML_FIG.html.caption_close = '</p>'
-HTML_FIG.html5 = {}
-HTML_FIG.html5.fig_open = '<figure>'
-HTML_FIG.html5.fig_close = '</figure>'
-HTML_FIG.html5.caption_open = '<figcaption>'
-HTML_FIG.html5.caption_close = '</figcaption>'
 local IDENTIFIERS = {}            -- List of identifiers found in doc
 local FIGURE_ID = "___fig___"     -- Default figure identifier base
 local FIGURE_EXISTS = false
@@ -46,6 +35,12 @@ local AUTOREFS = true             -- assume user wants autorefs.
 local SECTION_COUNT = {0, 0, 0, 0, 0, 0}  -- keep track of current section number
 local REFERENCES = {}             -- keep track of all refs (to create X-refs)
 local SECNUMDEPTH = 4             -- highest level at which to number sections
+
+
+function isLaTeX()
+    -- Returns true/false if format is one that uses LaTeX
+    return FORMAT == "latex" or FORMAT == "beamer"
+end
 
 
 function extendList(list, extension)
@@ -120,11 +115,7 @@ function extendTableCaption(caption)
 end
 
 function parseAttr(text)
-    -- Take string representing attributes and parse it into:
-    --     (a) identifier (string)
-    --     (b) classes (table of strings)
-    --     (c) attributes (key-value table)
-    --  Also return flag if unnumbered.
+    -- Parse string representing attributes. Also return flag if unnumbered.
     local _, _, identifier = string.find(text, '#([A-z]%w*)')
     local classes = {}
     for match in string.gmatch(text, '%.([A-z]%w*)') do
@@ -194,7 +185,7 @@ function processHeaders(header)
         return
     end
     table.insert(IDENTIFIERS, header.identifier)
-    if FORMAT == 'latex' or FORMAT == 'beamer' then
+    if isLaTeX() then
         return
     else
         incrementSectionCount(header.level)
@@ -214,7 +205,8 @@ function processFigures(para)
     -- Checks to see if a paragraph contains a lone figure. If so, adds its
     -- identifier and cross-reference information to local variables, modifies
     -- the caption, and adds surrounding LaTeX or HTML code.
-    if #para.content == 1 and para.content[1].t == "Image" then -- Para with single image
+    if #para.content == 1 and para.content[1].t == "Image" then
+        -- Para with single image: a *figure*.
         FIGURE_EXISTS = true
         local image = para.content[1]
         if not image.classes:find('unnumbered', 1) then
@@ -229,14 +221,15 @@ function processFigures(para)
                     label = image.identifier
                 }
         end
-        if FORMAT == 'latex' or FORMAT == 'beamer' then
+        if isLaTeX() then
             local shortCaption = {}
             if #image.caption > 0 then
                 -- There is a caption, so check for a Span with 'shortcaption'
                 -- class, and remove it from the caption.
                 local caption = {}
                 for _, inline in pairs(image.caption) do
-                    if inline.t == 'Span' and inList('shortcaption', inline.classes) then
+                    if inline.t == 'Span' and
+                            inList('shortcaption', inline.classes) then
                         shortCaption = inline.content
                     else
                         table.insert(caption, inline)
@@ -257,7 +250,8 @@ function processFigures(para)
                 latexCaption = '\\caption*['
             end
             local latexFigure = {
-                    pandoc.RawInline('latex', '\n\\begin{figure}[htbp]\n\\centering\n'),
+                    pandoc.RawInline('latex',
+                                     '\n\\begin{figure}[htbp]\n\\centering\n'),
                     image,
                     pandoc.RawInline('latex', latexCaption)
                 }
@@ -269,28 +263,6 @@ function processFigures(para)
                     '}\n\\label{' .. image.identifier .. '}\n\\end{figure}\n')
                 )
             return pandoc.Para(latexFigure)
-        elseif FORMAT == 'html' or FORMAT == 'html5' then
-            local label = extendImageCaption(image)
-            if image.title == "" or image.title == "fig:" then
-                image.title = pandoc.utils.stringify(label) ..
-                              pandoc.utils.stringify(image.caption)
-            end
-            local htmlFigure = {pandoc.RawInline(
-                        'html',
-                        '\n' .. HTML_FIG[FORMAT].fig_open .. '\n'
-                    ),
-                    image,
-                    pandoc.RawInline('html', HTML_FIG[FORMAT].caption_open)
-                }
-            htmlFigure = extendList(htmlFigure, label)
-            htmlFigure = extendList(htmlFigure, image.caption)
-            table.insert(htmlFigure,
-                         pandoc.RawInline(
-                                          'html', HTML_FIG[FORMAT].caption_close ..
-                                          '\n' ..
-                                          HTML_FIG[FORMAT].fig_close .. '\n')
-                    )
-            return pandoc.Para(htmlFigure)
         else
             image.caption = extendList(extendImageCaption(image), image.caption)
             return pandoc.Para(image)
@@ -318,7 +290,7 @@ function processTables(theTable)
     end
     local identifier, classes, attributes, unnumbered = parseAttr(captionAttrs)
     if unnumbered then
-        if FORMAT == 'latex' or FORMAT == 'beamer' then
+        if isLaTeX() then
             -- FIXME: This doesn't work with LaTeX: I still get the table
             -- number. Possible solution would be to take the table, run it
             -- through `pandoc.read()` to get a LaTeX string, and then
@@ -326,7 +298,8 @@ function processTables(theTable)
             -- `\\caption{}`. Finally, insert that back into the document
             -- as pandoc.RawBlock. That's pretty hackish.
             return theTable
-            -- return pandoc.Div(theTable, pandoc.Attr(identifier, classes, attributes))
+            -- return pandoc.Div(theTable, pandoc.Attr(identifier, classes,
+            -- attributes))
         else
             return theTable
         end
@@ -341,13 +314,14 @@ function processTables(theTable)
             id = TABLE_COUNT,
             label = identifier
         }
-    if FORMAT == 'latex' or FORMAT == 'beamer' then
+    if isLaTeX() then
         table.insert(
                 theTable.caption,
                 pandoc.RawInline('latex', '\\label{' .. identifier .. '}')
             )
     else
-        theTable.caption = extendList(extendTableCaption(theTable.caption), theTable.caption)
+        theTable.caption = extendList(extendTableCaption(theTable.caption),
+                                      theTable.caption)
     end
     return pandoc.Div(theTable, pandoc.Attr(identifier, classes, attributes))
     -- return theTable
@@ -361,7 +335,8 @@ function processMath(equation)
     if inList('math', equation.classes) then
         MATH_COUNT = MATH_COUNT + 1
         local a = {pandoc.Math('DisplayMath', equation.text)}
-        local b = pandoc.Attr(equation.identifier, equation.classes, equation.attributes)
+        local b = pandoc.Attr(equation.identifier, equation.classes,
+                              equation.attributes)
         if equation.identifier == nil then
             equation.identifier = MATH_ID .. MATH_COUNT
         end
@@ -371,7 +346,7 @@ function processMath(equation)
                 id = MATH_COUNT,
                 label = equation.identifier
             }
-        if FORMAT == 'latex' or FORMAT == 'beamer' then
+        if isLaTeX() then
             return pandoc.Para({
                     pandoc.RawInline('latex', '\\begin{equation}\n'
                             .. '\\label{' .. equation.identifier .. '}\n'
@@ -383,12 +358,13 @@ function processMath(equation)
             -- a caption with an empty span encoding the attributes to make
             -- sure that information is not lost.
             return pandoc.Table(
-                {pandoc.Span({pandoc.Space()}, pandoc.Attr(equation.identifier, equation.classes, equation.attributes))},
+                {pandoc.Span({}, pandoc.Attr(equation.identifier,
+                              equation.classes, equation.attributes))},
                 {MATH_FORMULA_ALIGN, MATH_LABEL_ALIGN},
                 {.9,.1},
                 {},
                 {
-                    {{pandoc.Para({pandoc.Math('DisplayMath', equation.text)})}, 
+                    {{pandoc.Para({pandoc.Math('DisplayMath', equation.text)})},
                     {pandoc.Para({pandoc.Str('(' .. MATH_COUNT .. ')')})}}
                 })
         end
@@ -401,15 +377,15 @@ function convertSingleRef(citation)
     if pandoc.utils.stringify(citation.prefix) ~= '' then
         table.insert(link, pandoc.Space())
     end
-    if FORMAT == 'latex' or FORMAT == 'beamer' then
+    if isLaTeX() then
         if AUTOREFS then
             table.insert(link,
                     pandoc.RawInline('latex', '\\cref{' .. citation.id .. '}')
-                )
+                    )
         else
             table.insert(link,
                     pandoc.RawInline('latex', '\\ref{' .. citation.id .. '}')
-                )
+                    )
         end
         link:extend(citation.suffix)
         return link
@@ -432,13 +408,15 @@ function joinInlines(items)
     elseif #items == 1 then
         return item[1]
     elseif #items == 2 then
-        return {items[1], pandoc.Space(), pandoc.Str('and'), pandoc.Space(), items[2]}
+        return {items[1], pandoc.Space(), pandoc.Str('and'), pandoc.Space(),
+                items[2]}
     else
         local list = {items[1]}
         for i = 2, #items - 1 do
             extendList(list, {pandoc.Str(','), pandoc.Space(), items[i]})
         end
-        extendList(list, {pandoc.Str(','), pandoc.Space(), pandoc.Str('and'), pandoc.Space(), items[#items]})
+        extendList(list, {pandoc.Str(','), pandoc.Space(), pandoc.Str('and'),
+                 pandoc.Space(), items[#items]})
         return list
     end
 end
@@ -449,7 +427,7 @@ function convertMultiref(citations)
     -- First create a list of links
     local links = {}
     for _, citation in pairs(citations) do
-        if FORMAT == 'latex' or FORMAT == 'beamer' then
+        if isLaTeX() then
             table.insert(links, citation.id)
         else
             -- FIXME: Perhaps should check if links are all of the same type, and
@@ -464,13 +442,15 @@ function convertMultiref(citations)
         end
     end
     -- Now format the links in that list.
-    if FORMAT == 'latex' or FORMAT == 'beamer' then
+    if isLaTeX() then
         if AUTOREFS then
-            return pandoc.RawInline('latex', '\\cref{' .. table.concat(links, ',') .. '}')
+            return pandoc.RawInline('latex',
+                                    '\\cref{' .. table.concat(links, ',') .. '}')
         else
             local refs = {}
             for _, ref in pairs(links) do
-                table.insert(refs, pandoc.RawInline('latex', '\\ref{' .. ref .. '}'))
+                table.insert(refs, pandoc.RawInline('latex',
+                                                    '\\ref{' .. ref .. '}'))
             end
             return joinInlines(refs)
         end
@@ -491,8 +471,8 @@ function processCitations(cite)
         end
     else
         -- Note: checking to ensure that *all* of the citations in a
-        -- multicitation are in the reference list. If not, the citation is
-        -- bibliographic, and we want pandoc to handle it, so just return
+        -- multicitation are in the reference list. If not, assume the citation
+        -- is bibliographic, and we want pandoc to handle it, so just return
         -- unmodified.
         for index, citation in pairs(cite.citations) do
             if not inList(citation.id, IDENTIFIERS) then
@@ -505,7 +485,7 @@ end
 
 function updateMeta(meta)
     -- Modify metadata to reflect presence of tables or figures.
-    if FORMAT == 'latex' or FORMAT == 'beamer' then
+    if isLaTeX() then
         if FIGURE_EXISTS then
             meta.graphics = pandoc.MetaBool(true)
         end
@@ -517,11 +497,11 @@ function updateMeta(meta)
 end
 
 return {
-    {Meta      = processMeta},       -- first to capture metadata in local variables
+    {Meta      = processMeta},       -- first capture metadata in local variables
     {Header    = processHeaders},    -- before Cite
     {Para      = processFigures},    -- before Cite
     {Table     = processTables},     -- before Cite
     {CodeBlock = processMath},       -- before Cite
-    {Cite      = processCitations},  -- next-to-last
-    {Meta      = updateMeta},        -- last
+    {Cite      = processCitations},  -- next-to-last do cross-references
+    {Meta      = updateMeta},        -- last update metadata
 }
