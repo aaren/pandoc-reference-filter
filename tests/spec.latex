@@ -1,59 +1,63 @@
+\hypertarget{sec:expt}{%
 \subsection{Experiments with pandoc figures
-(ˈjuːnɪˌkəʊd!)}\label{sec:expt}
+(ˈjuːnɪˌkəʊd!)}\label{sec:expt}}
 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics{image.png}
-\caption[link text]{a figure that can be referred to (ˈjuːnɪˌkəʊd!)}
+\includegraphics{image.png}\caption[]{a figure that can be referred to
+(ˈjuːnɪˌkəʊd!)}
 \label{fig:attr}
 \end{figure}
 
-Here is a reference to \autoref{fig:attr} and here is one to
-\autoref{fig:attr2}.
+Here is a reference to \cref{fig:attr} and here is one to
+\cref{fig:attr2}.
 
-Here is reference to the section called \autoref{sec:expt}.
+Here is reference to the section called \cref{sec:expt}.
 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics{image.png}
-\caption[fig:link text]{another figure that can be referred to (ˈjuːnɪˌkəʊd!)}
+\includegraphics{image.png}\caption[]{another figure that can be
+referred to (ˈjuːnɪˌkəʊd!)}
 \label{fig:attr2}
 \end{figure}
 
+
 \begin{figure}[htbp]
 \centering
-\includegraphics{image.png}
-\caption{figure with no attr and no link text (ˈjuːnɪˌkəʊd!)}
+\includegraphics{image.png}\caption[]{figure with no attr and no link
+text (ˈjuːnɪˌkəʊd!)}
+\label{___fig___3}
 \end{figure}
 
-Here is \autoref{eq:silly}:
+Here is \cref{eq:silly}:
 
-\[
-2 + 2 = 5
+\begin{equation}
 \label{eq:silly}
-\]
+2 + 2 = 5
+\end{equation}
 
-\subsection*{Unnumbered Section}\label{unnumbered-section}
+\hypertarget{unnumbered-section}{%
+\subsection*{Unnumbered Section}\label{unnumbered-section}}
 \addcontentsline{toc}{subsection}{Unnumbered Section}
 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics{image.png}
-\caption*[link text]{no numbering here (ˈjuːnɪˌkəʊd!)}
+\includegraphics{image.png}\caption*[]{no numbering here (ˈjuːnɪˌkəʊd!)}
 \label{fig:nonum}
 \end{figure}
 
-\subsection*{Multiple references}\label{multiple-references}
+\hypertarget{multiple-references}{%
+\subsection*{Multiple references}\label{multiple-references}}
 \addcontentsline{toc}{subsection}{Multiple references}
 
 We can refer to multiple things of the same type:
-\cref{fig:attr,fig:attr2}
+\cref{fig:attr,fig:attr2}.
 
 Or to multiple things of mixed type:
-\cref{fig:attr,fig:attr2,sec:expt,eq:silly}
+\cref{fig:attr,fig:attr2,sec:expt,eq:silly}.
 
 But if there are any missing keys, nothing will happen: {[}@fig:attr;
-@fig:idontexist{]}
+@fig:idontexist{]}.

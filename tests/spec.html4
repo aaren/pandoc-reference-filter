@@ -1,0 +1,38 @@
+<h2 id="sec:expt" class="class1 class2" key="value">0.1 Experiments with pandoc figures (ˈjuːnɪˌkəʊd!)</h2>
+<div class="figure">
+<img src="image.png" title="link text" alt="Figure 1: a figure that can be referred to (ˈjuːnɪˌkəʊd!)" id="fig:attr" class="class1 class2" key="value" />
+<p class="caption">Figure 1: a figure that can be referred to (ˈjuːnɪˌkəʊd!)</p>
+</div>
+<p>Here is a reference to <a href="#fig:attr">Figure 1</a> and here is one to <a href="#fig:attr2">Figure 2</a>.</p>
+<p>Here is reference to the section called <a href="#sec:expt">Section 0.1</a>.</p>
+<div class="figure">
+<img src="image.png" title="link text" alt="Figure 2: another figure that can be referred to (ˈjuːnɪˌkəʊd!)" id="fig:attr2" />
+<p class="caption">Figure 2: another figure that can be referred to (ˈjuːnɪˌkəʊd!)</p>
+</div>
+<div class="figure">
+<img src="image.png" alt="Figure 3: figure with no attr and no link text (ˈjuːnɪˌkəʊd!)" id="___fig___3" />
+<p class="caption">Figure 3: figure with no attr and no link text (ˈjuːnɪˌkəʊd!)</p>
+</div>
+<p>Here is <a href="#eq:silly">Equation 1</a>:</p>
+<table>
+<caption><span id="eq:silly" class="math"></span></caption>
+<colgroup>
+<col width="90%" />
+<col width="10%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td align="center"><p><span class="math display">\[2 + 2 = 5\]</span></p></td>
+<td align="right"><p>(1)</p></td>
+</tr>
+</tbody>
+</table>
+<h2 id="unnumbered-section" class="unnumbered">Unnumbered Section</h2>
+<div class="figure">
+<img src="image.png" title="link text" alt="no numbering here (ˈjuːnɪˌkəʊd!)" id="fig:nonum" class="unnumbered" />
+<p class="caption">no numbering here (ˈjuːnɪˌkəʊd!)</p>
+</div>
+<h2 id="multiple-references" class="unnumbered">Multiple references</h2>
+<p>We can refer to multiple things of the same type: <a href="#fig:attr">Figure 1</a> and <a href="#fig:attr2">Figure 2</a>.</p>
+<p>Or to multiple things of mixed type: <a href="#fig:attr">Figure 1</a>, <a href="#fig:attr2">Figure 2</a>, <a href="#sec:expt">Section 0.1</a>, and <a href="#eq:silly">Equation 1</a>.</p>
+<p>But if there are any missing keys, nothing will happen: <span class="citation">[@fig:attr; @fig:idontexist]</span>.</p>

@@ -1,34 +1,34 @@
-<h2 id="sec:expt" class="class1 class2" key="value">0.1: Experiments with pandoc figures (ˈjuːnɪˌkəʊd!)</h2>
-
-<figure id="fig:attr" class="figure class1 class2" key=value>
-<img src="image.png" title = "link text" alt="Figure 1: a figure that can be referred to (ˈjuːnɪˌkəʊd!)" />
-<figcaption>Figure 1: a figure that can be referred to (ˈjuːnɪˌkəʊd!)</figcaption>
-</figure>
-
-<p>Here is a reference to <a href="#fig:attr">Figure 1</a> and here is one to <a href="#fig:attr2">Figure 2</a>.</p>
-<p>Here is reference to the section called <a href="#sec:expt">Section 0.1</a>.</p>
-
-<figure id="fig:attr2" class="figure">
-<img src="image.png" title = "fig:link text" alt="Figure 2: another figure that can be referred to (ˈjuːnɪˌkəʊd!)" />
-<figcaption>Figure 2: another figure that can be referred to (ˈjuːnɪˌkəʊd!)</figcaption>
-</figure>
-
+<h2 id="sec:expt" class="class1 class2" data-key="value">0.1 Experiments with pandoc figures (ˈjuːnɪˌkəʊd!)</h2>
 <figure>
-<img src="image.png" alt="figure with no attr and no link text (ˈjuːnɪˌkəʊd!)" /><figcaption>figure with no attr and no link text (ˈjuːnɪˌkəʊd!)</figcaption>
+<img src="image.png" title="link text" alt="Figure 1: a figure that can be referred to (ˈjuːnɪˌkəʊd!)" id="fig:attr" class="class1 class2" data-key="value" /><figcaption>Figure 1: a figure that can be referred to (ˈjuːnɪˌkəʊd!)</figcaption>
 </figure>
-<p>Here is <a href="#eq:silly">Equation 1</a>:</p>
-<p><span id="#eq:silly"><span class="math display">\[
-2 + 2 = 5
-\label{eq:silly}
-\]</span></span></p>
+<p>Here is a reference to <a href="#fig:attr">Figure 1</a> and here is one to <a href="#fig:attr2">Figure 2</a>.</p>
+<p>Here is reference to the section called <a href="#sec:expt">Section 0.1</a>.</p>
+<figure>
+<img src="image.png" title="link text" alt="Figure 2: another figure that can be referred to (ˈjuːnɪˌkəʊd!)" id="fig:attr2" /><figcaption>Figure 2: another figure that can be referred to (ˈjuːnɪˌkəʊd!)</figcaption>
+</figure>
+<figure>
+<img src="image.png" alt="Figure 3: figure with no attr and no link text (ˈjuːnɪˌkəʊd!)" id="___fig___3" /><figcaption>Figure 3: figure with no attr and no link text (ˈjuːnɪˌkəʊd!)</figcaption>
+</figure>
+<p>Here is <a href="#eq:silly">Equation 1</a>:</p>
+<table>
+<caption><span id="eq:silly" class="math"></span></caption>
+<colgroup>
+<col style="width: 90%" />
+<col style="width: 10%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><p><span class="math display">\[2 + 2 = 5\]</span></p></td>
+<td style="text-align: right;"><p>(1)</p></td>
+</tr>
+</tbody>
+</table>
 <h2 id="unnumbered-section" class="unnumbered">Unnumbered Section</h2>
-
-<figure id="fig:nonum" class="figure unnumbered">
-<img src="image.png" title = "link text" alt="no numbering here (ˈjuːnɪˌkəʊd!)" />
-<figcaption>no numbering here (ˈjuːnɪˌkəʊd!)</figcaption>
+<figure>
+<img src="image.png" title="link text" alt="no numbering here (ˈjuːnɪˌkəʊd!)" id="fig:nonum" class="unnumbered" /><figcaption>no numbering here (ˈjuːnɪˌkəʊd!)</figcaption>
 </figure>
-
 <h2 id="multiple-references" class="unnumbered">Multiple references</h2>
-<p>We can refer to multiple things of the same type: Figures <a href="#fig:attr">1</a> and <a href="#fig:attr2">2</a></p>
-<p>Or to multiple things of mixed type: Section <a href="#sec:expt">0.1</a>, Equation <a href="#eq:silly">1</a> and Figures <a href="#fig:attr">1</a> and <a href="#fig:attr2">2</a></p>
-<p>But if there are any missing keys, nothing will happen: <span class="citation" data-cites="fig:attr fig:idontexist">[@fig:attr; @fig:idontexist]</span></p>
+<p>We can refer to multiple things of the same type: <a href="#fig:attr">Figure 1</a> and <a href="#fig:attr2">Figure 2</a>.</p>
+<p>Or to multiple things of mixed type: <a href="#fig:attr">Figure 1</a>, <a href="#fig:attr2">Figure 2</a>, <a href="#sec:expt">Section 0.1</a>, and <a href="#eq:silly">Equation 1</a>.</p>
+<p>But if there are any missing keys, nothing will happen: <span class="citation" data-cites="fig:attr fig:idontexist">[@fig:attr; @fig:idontexist]</span>.</p>
