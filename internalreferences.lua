@@ -2,9 +2,6 @@
 
 TODO:
 
-- For multi-refs, check to see whether refs are all of the same type, and
-  handle differently as appropriate.
-
 - Fix unnumbered tables in LaTeX
 
 --]]
@@ -90,10 +87,7 @@ function extendImageCaption(image)
         if pandoc.utils.stringify(image.caption) == '' then
             label = {pandoc.Str(REPLACEMENTS.figure .. tostring(FIGURE_COUNT))}
         else
-            label = {
-                    pandoc.Str(REPLACEMENTS.figure .. tostring(FIGURE_COUNT) .. ":"),
-                    pandoc.Space()
-                }
+            label = {pandoc.Str(REPLACEMENTS.figure .. tostring(FIGURE_COUNT) .. ": ")}
         end
     end
     return label
@@ -106,10 +100,7 @@ function extendTableCaption(caption)
     if pandoc.utils.stringify(caption) == '' then
         label = {pandoc.Str(REPLACEMENTS.table .. tostring(TABLE_COUNT))}
     else
-        label = {
-                pandoc.Str(REPLACEMENTS.table .. tostring(TABLE_COUNT) .. ":"),
-                pandoc.Space()
-            }
+        label = {pandoc.Str(REPLACEMENTS.table .. tostring(TABLE_COUNT) .. ": ")}
     end
     return label
 end
@@ -185,15 +176,15 @@ function processHeaders(header)
         return
     end
     table.insert(IDENTIFIERS, header.identifier)
+    incrementSectionCount(header.level)
+    REFERENCES[header.identifier] = {
+            type = "section",
+            id = formatSectionCount(header.level),
+            label = header.identifier
+        }
     if isLaTeX() then
         return
     else
-        incrementSectionCount(header.level)
-        REFERENCES[header.identifier] = {
-                type = "section",
-                id = formatSectionCount(header.level),
-                label = header.identifier
-            }
         header.content = extendList({pandoc.Str(formatSectionCount(header.level)),
                                      pandoc.Space()},
                                     header.content)
@@ -408,15 +399,13 @@ function joinInlines(items)
     elseif #items == 1 then
         return item[1]
     elseif #items == 2 then
-        return {items[1], pandoc.Space(), pandoc.Str('and'), pandoc.Space(),
-                items[2]}
+        return {items[1], pandoc.Str(' and '), items[2]}
     else
         local list = {items[1]}
         for i = 2, #items - 1 do
-            extendList(list, {pandoc.Str(','), pandoc.Space(), items[i]})
+            extendList(list, {pandoc.Str(', '), items[i]})
         end
-        extendList(list, {pandoc.Str(','), pandoc.Space(), pandoc.Str('and'),
-                 pandoc.Space(), items[#items]})
+        extendList(list, {pandoc.Str(', and '), items[#items]})
         return list
     end
 end
@@ -424,17 +413,26 @@ end
 function convertMultiref(citations)
     -- Takes a list of citations and returns a list of pandoc-formatted inlines
     -- representing multi-citation (including links).
-    -- First create a list of links
+    -- First check if citations are all of the same type.
+    local sameType = true
+    local firstType = REFERENCES[citations[1].id].type
+    for _, citation in pairs(citations) do
+        if REFERENCES[citation.id].type ~= firstType then
+            sameType = false
+        end
+    end
+    -- Create a list of links
     local links = {}
     for _, citation in pairs(citations) do
         if isLaTeX() then
             table.insert(links, citation.id)
         else
-            -- FIXME: Perhaps should check if links are all of the same type, and
-            -- if so use MULTI_REPLACEMENTS instead of convertSingleRef().
-            local linkText = REFERENCES[citation.id].id
+            local linkText
             if AUTOREFS then
-                linkText = REPLACEMENTS[REFERENCES[citation.id].type] .. linkText
+                linkText = REFERENCES[citation.id].id
+                if not sameType then  -- add individual reference names
+                    linkText = REPLACEMENTS[REFERENCES[citation.id].type] .. linkText
+                end
             end
             table.insert(links,
                     pandoc.Link(pandoc.Str(linkText), '#' .. citation.id)
@@ -455,7 +453,11 @@ function convertMultiref(citations)
             return joinInlines(refs)
         end
     else
-        return joinInlines(links)
+        links = joinInlines(links)
+        if sameType then  -- Need to add multiref prefix...
+            table.insert(links, 1, pandoc.Str(MULTI_REPLACEMENTS[firstType]))
+        end
+        return links
     end
 end
 
