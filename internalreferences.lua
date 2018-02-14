@@ -236,21 +236,20 @@ function processFigures(para)
                     shortCaption = pandoc.read(string.sub(image.title, 5)).blocks[1].c
                 end
             end
-            local latexCaption = '\\caption['
-            if image.classes:find('unnumbered', 1) then
-                latexCaption = '\\caption*['
-            end
             local latexFigure = {
                     pandoc.RawInline('latex',
                                      '\n\\begin{figure}[htbp]\n\\centering\n'),
-                    image,
-                    pandoc.RawInline('latex', latexCaption)
+                    image
                 }
-            latexFigure = extendList(latexFigure, shortCaption)
-            table.insert(latexFigure, pandoc.RawInline('latex', ']{'))
+            if image.classes:find('unnumbered', 1) then
+                table.insert(latexFigure, pandoc.RawInline('latex', '\\caption*{'))
+            else  -- numbered figure
+                table.insert(latexFigure, pandoc.RawInline('latex', '\\caption['))
+                latexFigure = extendList(latexFigure, shortCaption)
+                table.insert(latexFigure, pandoc.RawInline('latex', ']{'))
+            end
             latexFigure = extendList(latexFigure, image.caption)
-            table.insert(latexFigure, pandoc.RawInline(
-                    'latex',
+            table.insert(latexFigure, pandoc.RawInline('latex',
                     '}\n\\label{' .. image.identifier .. '}\n\\end{figure}\n')
                 )
             return pandoc.Para(latexFigure)
