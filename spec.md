@@ -41,3 +41,19 @@ Or to multiple things of mixed type: [@fig:attr; @fig:attr2; @sec:expt;
 
 But if there are any missing keys, nothing will happen: [@fig:attr;
 @fig:idontexist].
+
+## Tables
+
+| 1 | 2 |
+|---|---|
+| a | b |
+
+:   This is my caption. {#mytable}
+
+| 1 | 2 |
+|---|---|
+| a | b |
+
+:   Another caption. {-}
+
+Does this work? (See @mytable\.)

@@ -22,8 +22,8 @@
 </colgroup>
 <tbody>
 <tr class="odd">
-<td align="center"><p><span class="math display">\[2 + 2 = 5\]</span></p></td>
-<td align="right"><p>(1)</p></td>
+<td align="center"><br /><span class="math display">2 + 2 = 5</span><br /></td>
+<td align="right">(1)</td>
 </tr>
 </tbody>
 </table>
@@ -36,3 +36,37 @@
 <p>We can refer to multiple things of the same type: Figures <a href="#fig:attr">1</a> and <a href="#fig:attr2">2</a>.</p>
 <p>Or to multiple things of mixed type: <a href="#fig:attr">Figure 1</a>, <a href="#fig:attr2">Figure 2</a>, <a href="#sec:expt">Section 0.1</a>, and <a href="#eq:silly">Equation 1</a>.</p>
 <p>But if there are any missing keys, nothing will happen: <span class="citation">[@fig:attr; @fig:idontexist]</span>.</p>
+<h2 id="tables">0.2 Tables</h2>
+<div id="mytable">
+<table>
+<caption>Table 1: This is my caption.</caption>
+<thead>
+<tr class="header">
+<th>1</th>
+<th>2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>a</td>
+<td>b</td>
+</tr>
+</tbody>
+</table>
+</div>
+<table>
+<caption>Another caption.</caption>
+<thead>
+<tr class="header">
+<th>1</th>
+<th>2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>a</td>
+<td>b</td>
+</tr>
+</tbody>
+</table>
+<p>Does this work? (See <a href="#mytable">Table 1</a>.)</p>

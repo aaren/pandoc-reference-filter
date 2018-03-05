@@ -18,11 +18,11 @@ Here is reference to the section called [Section 0.1](#sec:expt).
 
 Here is [Equation 1](#eq:silly):
 
-+:-------------------------------------------------------------:+-----:+
-| $$2 + 2 = 5$$                                                 | (1)  |
-+---------------------------------------------------------------+------+
+  --------------------------------------------------------------- -------
+                           $$2 + 2 = 5$$                              (1)
+  --------------------------------------------------------------- -------
 
-: []{#eq:silly .math}
+  : []{#eq:silly .math}
 
 Unnumbered Section {#unnumbered-section .unnumbered}
 ------------------
@@ -41,3 +41,22 @@ Or to multiple things of mixed type:
 
 But if there are any missing keys, nothing will happen:
 [@fig:attr; @fig:idontexist].
+
+0.2 Tables
+----------
+
+::: {#mytable}
+  1   2
+  --- ---
+  a   b
+
+  : Table 1: This is my caption.
+:::
+
+  1   2
+  --- ---
+  a   b
+
+  : Another caption.
+
+Does this work? (See [Table 1](#mytable).)

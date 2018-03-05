@@ -279,7 +279,7 @@ function processTables(theTable)
         end
     end
     local identifier, classes, attributes, unnumbered = parseAttr(captionAttrs)
-    if unnumbered then
+    if unnumbered or captionText == '' then
         if isLaTeX() then
             -- FIXME: This doesn't work with LaTeX: I still get the table
             -- number. Possible solution would be to take the table, run it
@@ -322,11 +322,8 @@ function processMath(equation)
     --     ``` {.math #label}
     --     1+1=2
     --     ```
-    if inList('math', equation.classes) then
+    if equation.classes:includes('math') then
         MATH_COUNT = MATH_COUNT + 1
-        local a = {pandoc.Math('DisplayMath', equation.text)}
-        local b = pandoc.Attr(equation.identifier, equation.classes,
-                              equation.attributes)
         if equation.identifier == nil then
             equation.identifier = MATH_ID .. MATH_COUNT
         end
@@ -336,8 +333,8 @@ function processMath(equation)
                 id = MATH_COUNT,
                 label = equation.identifier
             }
-        if isLaTeX() then
-            return pandoc.Para({
+        if isLaTeX() then  -- Create LaTeX equation
+            return pandoc.Plain({
                     pandoc.RawInline('latex', '\\begin{equation}\n'
                             .. '\\label{' .. equation.identifier .. '}\n'
                             .. equation.text .. '\n' ..
@@ -354,8 +351,8 @@ function processMath(equation)
                 {.9,.1},
                 {},
                 {
-                    {{pandoc.Para({pandoc.Math('DisplayMath', equation.text)})},
-                    {pandoc.Para({pandoc.Str('(' .. MATH_COUNT .. ')')})}}
+                    {{pandoc.Plain({pandoc.Math('DisplayMath', equation.text)})},
+                    {pandoc.Plain({pandoc.Str('(' .. MATH_COUNT .. ')')})}}
                 })
         end
     end

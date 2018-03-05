@@ -45,7 +45,7 @@ Here is \cref{eq:silly}:
 
 \begin{figure}[htbp]
 \centering
-\includegraphics{image.png}\caption*[]{no numbering here (ˈjuːnɪˌkəʊd!)}
+\includegraphics{image.png}\caption*{no numbering here (ˈjuːnɪˌkəʊd!)}
 \label{fig:nonum}
 \end{figure}
 
@@ -61,3 +61,37 @@ Or to multiple things of mixed type:
 
 But if there are any missing keys, nothing will happen: {[}@fig:attr;
 @fig:idontexist{]}.
+
+\hypertarget{tables}{%
+\subsection{Tables}\label{tables}}
+
+\hypertarget{mytable}{}
+\begin{longtable}[]{@{}ll@{}}
+\caption{This is my caption.\label{mytable}}\tabularnewline
+\toprule
+1 & 2\tabularnewline
+\midrule
+\endfirsthead
+\toprule
+1 & 2\tabularnewline
+\midrule
+\endhead
+a & b\tabularnewline
+\bottomrule
+\end{longtable}
+
+\begin{longtable}[]{@{}ll@{}}
+\caption{Another caption.}\tabularnewline
+\toprule
+1 & 2\tabularnewline
+\midrule
+\endfirsthead
+\toprule
+1 & 2\tabularnewline
+\midrule
+\endhead
+a & b\tabularnewline
+\bottomrule
+\end{longtable}
+
+Does this work? (See \cref{mytable}.)
