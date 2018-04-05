@@ -107,9 +107,9 @@ end
 
 function parseAttr(text)
     -- Parse string representing attributes. Also return flag if unnumbered.
-    local _, _, identifier = string.find(text, '#([A-z]%w*)')
+    local _, _, identifier = string.find(text, '#([A-z][^ ]*)')
     local classes = {}
-    for match in string.gmatch(text, '%.([A-z]%w*)') do
+    for match in string.gmatch(text, '%.([A-z][^ ]*)') do
         table.insert(classes, match)
     end
     -- Check to see if need to add "unnumbered" to classes
@@ -125,31 +125,32 @@ function parseAttr(text)
     -- If `+smart` is on, pandoc will use curly quotes in the caption and hence
     -- in the attributes we're trying to process. Need to test for 5 cases: no
     -- quotes, and both single and double straight and curly quotes.
-    for match in string.gmatch(text, '[A-z]%w*=[A-z]%w*') do     -- no quotes
-        local key = string.match(match, '([A-z]%w*)=')
-        local value = string.match(match, '=([A-z]%w*)')
+    for match in string.gmatch(text, '[A-z][^ ]*=[A-z][^ ]*') do     -- no quotes
+        local key = string.match(match, '([A-z][^ ]*)=')
+        local value = string.match(match, '=([A-z][^ ]*)')
         attributes[key] = value
     end
-    for match in string.gmatch(text, '[A-z]%w*=“([A-z].+)”') do  --double curly
-        local key = string.match(match, '([A-z]%w*)=')
+    for match in string.gmatch(text, '[A-z][^ ]*=“([A-z].+)”') do  --double curly
+        local key = string.match(match, '([A-z][^ ]*)=')
         local value = string.match(match, '=“(.+)”')
         attributes[key] = value
     end
-    for match in string.gmatch(text, '[A-z]%w*="([A-z].+)"') do  --double straight
-        local key = string.match(match, '([A-z]%w*)=')
+    for match in string.gmatch(text, '[A-z][^ ]*="([A-z].+)"') do  --double straight
+        local key = string.match(match, '([A-z][^ ]*)=')
         local value = string.match(match, '="(.+)"')
         attributes[key] = value
     end
-    for match in string.gmatch(text, "[A-z]%w*=‘([A-z].+)’") do  --single curly
-        local key = string.match(match, "([A-z]%w*)=")
+    for match in string.gmatch(text, "[A-z][^ ]*=‘([A-z].+)’") do  --single curly
+        local key = string.match(match, "([A-z][^ ]*)=")
         local value = string.match(match, "=‘(.+)’")
         attributes[key] = value
     end
-    for match in string.gmatch(text, "[A-z]%w*='([A-z].+)'") do  --single straight
-        local key = string.match(match, "([A-z]%w*)=")
+    for match in string.gmatch(text, "[A-z][^ ]*='([A-z].+)'") do  --single straight
+        local key = string.match(match, "([A-z][^ ]*)=")
         local value = string.match(match, "='(.+)'")
         attributes[key] = value
     end
+    print(text .. '|' .. identifier)
     return identifier, classes, attributes, unnumbered
 end
 
