@@ -150,7 +150,6 @@ function parseAttr(text)
         local value = string.match(match, "='(.+)'")
         attributes[key] = value
     end
-    print(text .. '|' .. identifier)
     return identifier, classes, attributes, unnumbered
 end
 
