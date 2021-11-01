@@ -233,7 +233,7 @@ function processFigures(para)
                 -- title (if any) be the shortCaption. Remove the "fig:" pandoc
                 -- inserts and run through pandoc to format...
                 if #image.title > 4 then
-                    shortCaption = pandoc.read(string.sub(image.title, 5)).blocks[1].c
+                    shortCaption = pandoc.read(string.sub(image.title, 5)).blocks[1].text
                 end
             end
             local latexFigure = {
@@ -269,7 +269,7 @@ function processTables(theTable)
     else  -- Remove attribute string from caption
         while true do
             local inline = table.remove(theTable.caption)
-            if inline.t == 'Str' and string.find(inline.c, '^{') then
+            if inline.t == 'Str' and string.find(inline.text, '^{') then
                 break
             end
         end
