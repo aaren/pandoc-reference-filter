@@ -3,30 +3,10 @@ import json
 
 import nose.tools as nt
 
-import internalreferences
-
-
-def test_attributes():
-    attr_markdown = r"""{#identify .class1 .class2
-    key1=blah key2="o'brien = 1" -}"""
-    attr_dict = {'id': 'identify',
-                'classes': ['class1', 'class2', 'unnumbered'],
-                'key1': 'blah',
-                'key2': '"o\'brien = 1"'
-                }
-    attr_html = '''id="identify" class="class1 class2 unnumbered" key1=blah key2="o'brien = 1"'''
-
-    attr = internalreferences.PandocAttributes(attr_markdown, 'markdown')
-
-    print(attr_dict)
-    print(attr.to_dict())
-    nt.assert_dict_equal(attr_dict, attr.to_dict())
-    nt.assert_equal(attr_html, attr.to_html())
-
 
 def call_pandoc(format):
     pandoc_cmd = ('pandoc', 'spec.md',
-                  '--filter', './internalreferences.py',
+                  '--lua-filter', './internalreferences.lua',
                   '--mathjax',
                   '--to', format)
     p = subprocess.Popen(pandoc_cmd, stdout=subprocess.PIPE)
@@ -48,7 +28,7 @@ def test_markdown():
 
 
 def test_html():
-    _test('html')
+    _test('html4')
 
 
 def test_html5():
